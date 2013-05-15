@@ -7,7 +7,7 @@ clear
 % binary flags
 plotreal = 0;
 plotend = 1;
-randenv = 1;
+randenv = 0;
 
 % parameters constructing the space to characterize
 if nargin < 1
@@ -24,11 +24,11 @@ end
 mutrate = .1;
 mutmag = [0.05, 0.05];
 
-popsize = 1000;
+popsize = 100;
 k = 1;
 
 % stable parameters
-maxtime = 10^5/2; % 10^5/2 is a good runtime
+maxtime = 10^3; % 10^5/2 is a good runtime
 tS = 0.2; % time step
 
 time = linspace(1,tS*maxtime,maxtime);
@@ -107,5 +107,4 @@ if plotend
     plot(Env(1,1:50),'ko')
     figure(5)
     plot(Env,'ko')
-    figure(6)  
 end
