@@ -1,10 +1,14 @@
 import sys
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as sps
 import sqlite3 as sqlite
 
-## parameter values
+from datetime import datetime
+
+# initialize variables
+# =============================
 
 # binary flags
 plotreal = 0
@@ -30,11 +34,12 @@ else:
 mutrate = .1
 mutmag = [0.05, 0.05]
 
-popsize = 1000
+
+popsize = 100 # 1000 is base
 k = 1
 
 # stable parameters
-maxtime = 10**5 # 10^5/2 is a good runtime
+maxtime = 10**3 # 10^5/2 is base
 tS = 0.2 # time step
 
 time = np.linspace(1,tS*maxtime,num=maxtime)
@@ -58,8 +63,31 @@ avggen = np.zeros((maxtime,1))
 extinct = 0.001
 newstrain = 0.01
 
-## time loop
+# database setup
+# ==========================
+now = datetime.now()
+tstring = now.strftime("%Y%m%dT%H%M%S")
+par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
+db_name = par_string + "_" + tstring + ".sqlite"
+print db_name
 
+if os.path.isfile(db_name):
+  os.remove(db_name)
+
+cxn = sqlite.connect(db_name)
+cursor = cxn.cursor()
+query = """
+  CREATE TABLE results(
+    proportion REAL,
+    mean REAL,
+    standdev REAL,
+    PRIMARY KEY (proportion, mean, standdev)
+    )
+    """
+cursor.execute(query)
+
+# time loop
+# ============================
 for i in range(maxtime):
   
     #Population growth
@@ -86,26 +114,25 @@ for i in range(maxtime):
         Pop[temp2[0]][0] = newstrain
         Pop[temp2[0]][1] = mutmag[0]*np.random.randn()+Pop[temp[newmut[0]]][1]
         Pop[temp2[0]][2] = np.abs(mutmag[1]*np.random.randn()+Pop[temp[newmut[0]]][2])
-#     if rem(i,1000) == 0
-#         figure(1)
-#         bar(sort(Pop(:,1),'descend'))
-#     end
 
-#     if plotreal
-#     if rem(i,1000) == 0
-#         figure(1)
-# #        bar(sort(Pop(:,1),'descend'))
-#         [varS,I] = sort(Pop(:,3))
-#         stem(varS(varS~=0),Pop(I(varS~=0),1))
-#     end
-#     end        
+# plot
+# ============================
 if plotend:
+    # make directory for figure output
+    if saveplot:
+        figdir = "fig"
+        if not os.path.exists(figdir):
+            os.makedirs(figdir)
+
+    #define font size
+    plt.rc("font", size=20)
+    plt.rc("text", usetex=True)
     # figure(2)
     fig1 = plt.figure(1)
     f1p1 = plt.plot(avggen,linestyle='none',marker='o',mec='r',mfc='r')
     
     if saveplot:
-        plt.savefig('fig/avggen')
+        plt.savefig(figdir + '/avggen')
     
     if showplot:
         plt.show()
@@ -138,4 +165,3 @@ if plotend:
 
     if showplot:
         plt.show()
-
