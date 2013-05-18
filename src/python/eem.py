@@ -3,45 +3,31 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as sps
-import sqlite3 as sqlite
+#import sqlite3 as sqlite
 
 from datetime import datetime
 
 
-def eemsim(ampsize, P, ssmix):
+def eemsim(ampsize=2, P=4, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/2):
 # initialize variables
 # =============================
 
     # binary flags
     plotreal = 0
-    plotend = 1
+    plotend = 0
     randenv = 0
     saveplot = 1
     showplot = 0
 
-    sys.argv = 0
-    # parameters constructing the space to characterize
-    if sys.argv < 1:
-        ampsize = 2 # amplitude of fluctuations
-        P = 4 # period 
-        ssmix = 0.9 # square / sinusoid mixing proportion    
-    elif sys.argv < 2:
-        P = 4 # period 
-        ssmix = 0.9 # square / sinusoid mixing proportion
-    elif sys.argv < 3:
-        ssmix = 0.9 # square / sinusoid mixing proportion
-    else:
-    	print "incorrect number of input arguments"
-
-    mutrate = .1
+    #mutrate = .1
     mutmag = [0.05, 0.05]
 
 
-    popsize = 100 # 1000 is base
+    #popsize = 100 # 1000 is base
     k = 1
 
     # stable parameters
-    maxtime = 10**3 # 10^5/2 is base
+    #maxtime = 10**3 # 10**5/2 is base
     tS = 0.2 # time step
 
     time = np.linspace(1,tS*maxtime,num=maxtime)
@@ -67,26 +53,26 @@ def eemsim(ampsize, P, ssmix):
 
     # database setup
     # ==========================
-    now = datetime.now()
-    tstring = now.strftime("%Y%m%dT%H%M%S")
-    par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
-    db_name = par_string + "_" + tstring + ".sqlite"
-    print db_name
+    # now = datetime.now()
+    # tstring = now.strftime("%Y%m%dT%H%M%S")
+    # par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
+    # db_name = par_string + "_" + tstring + ".sqlite"
+    # print db_name
 
-    if os.path.isfile(db_name):
-      os.remove(db_name)
+    # if os.path.isfile(db_name):
+    #   os.remove(db_name)
 
-    cxn = sqlite.connect(db_name)
-    cursor = cxn.cursor()
-    query = """
-    CREATE TABLE results(
-    proportion REAL,
-    mean REAL,
-    standdev REAL,
-    PRIMARY KEY (proportion, mean, standdev)
-    )
-    """
-    cursor.execute(query)
+    # cxn = sqlite.connect(db_name)
+    # cursor = cxn.cursor()
+    # query = """
+    # CREATE TABLE results(
+    # proportion REAL,
+    # mean REAL,
+    # standdev REAL,
+    # PRIMARY KEY (proportion, mean, standdev)
+    # )
+    # """
+    # cursor.execute(query)
 
     # time loop
     # ============================
@@ -167,3 +153,7 @@ def eemsim(ampsize, P, ssmix):
 
             if showplot:
                 plt.show()
+    
+    # return
+    # ============================
+    return Pop, avggen
