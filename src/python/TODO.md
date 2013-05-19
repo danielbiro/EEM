@@ -1,6 +1,5 @@
 # TODO
-1. configure for sun grid engine (local)
-1. configure for sun grid engine (remote)
+1. configure for sun grid engine: consider [saga](http://saga-project.github.io/) / [saga-python](http://saga-project.github.io/saga-python/) and [pythongrid](https://code.google.com/p/pythongrid/)
 
 # Completed
 1. convert to function (eem.py)
