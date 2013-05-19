@@ -17,8 +17,8 @@ from sqlalchemy.orm import sessionmaker
 
 db_name = "test.db"
 
-if os.path.isfile(db_name):
-   os.remove(db_name)
+# if os.path.isfile(db_name):
+#    os.remove(db_name)
 
 # Connect
 # ====================
