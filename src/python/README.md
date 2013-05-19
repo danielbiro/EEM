@@ -14,9 +14,9 @@
 
 Install [pip](http://www.pip-installer.org/en/latest/installing.html#using-get-pip)
 
-```$ curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
-$ [sudo] python get-pip.py```
+    $ curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    $ [sudo] python get-pip.py
 
 Then install dependencies
 
-```$ [sudo] pip install numpy scipy matplotlib sqlalchemy saga-python```
+    $ [sudo] pip install numpy scipy matplotlib sqlalchemy saga-python
