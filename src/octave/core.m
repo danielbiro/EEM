@@ -1,4 +1,4 @@
-%function[avggen] = core(ampsize,P,ssmix)
+function[avggen] = core(ampsize,P,ssmix)
 
 clear 
 
@@ -12,7 +12,7 @@ randenv = 0;
 % parameters constructing the space to characterize
 if nargin < 1
     ampsize = 2; % amplitude of fluctuations
-    P = 4; % period 
+    P = 25; % period 
     ssmix = 0.9; % square / sinusoid mixing proportion    
 elseif nargin < 2
     P = 4; % period 
@@ -24,14 +24,15 @@ end
 mutrate = .1;
 mutmag = [0.05, 0.05];
 
-popsize = 100;
+popsize = 100; % 1000 is base
 k = 1;
 
 % stable parameters
 maxtime = 10^3; % 10^5/2 is a good runtime
 tS = 0.2; % time step
 
-time = linspace(1,tS*maxtime,maxtime);
+%time = linspace(1,tS*maxtime,maxtime);
+time = 1:maxtime;
 
 if randenv
     % Env = ampsize.*(round(rand(length(time),1)').*2 - 1);

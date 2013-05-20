@@ -23,10 +23,10 @@ def eemsim(ampsize, P, ssmix):
     # parameters constructing the space to characterize
     if sys.argv < 1:
         ampsize = 2 # amplitude of fluctuations
-        P = 4 # period 
+        P = 25 # period 
         ssmix = 0.9 # square / sinusoid mixing proportion    
     elif sys.argv < 2:
-        P = 4 # period 
+        P = 25 # period 
         ssmix = 0.9 # square / sinusoid mixing proportion
     elif sys.argv < 3:
         ssmix = 0.9 # square / sinusoid mixing proportion
@@ -44,7 +44,8 @@ def eemsim(ampsize, P, ssmix):
     maxtime = 10**3 # 10^5/2 is base
     tS = 0.2 # time step
 
-    time = np.linspace(1,tS*maxtime,num=maxtime)
+    #time = np.linspace(1,tS*maxtime,num=maxtime)
+    time = np.linspace(1,maxtime,num=maxtime)
 
     if randenv:
         # Env = ampsize.*(round(rand(length(time),1)').*2 - 1)

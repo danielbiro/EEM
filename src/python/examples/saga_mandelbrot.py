@@ -4,8 +4,8 @@ import time
 import saga
 from PIL import Image
 
-REMOTE_HOST = "india.futuregrid.org"
-REMOTE_JOB_ENDPOINT = "pbs+ssh://" + REMOTE_HOST 
+REMOTE_HOST = "albert.einstein.yu.edu"
+REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
 REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 
 # the dimension (in pixel) of the whole fractal
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     try:
         # Your ssh identity on the remote machine
         ctx = saga.Context("ssh")
-        ctx.user_id = "oweidner"
+        ctx.user_id = "cameron"
 
         session = saga.Session()
         session.add_context(ctx)
@@ -29,9 +29,11 @@ if __name__ == "__main__":
         jobs = []
 
         # create a working directory in /scratch
-        dirname = '%s/%s/mbrot/' % (REMOTE_FILE_ENDPOINT, '/N/u/oweidner/')
+        dirname = '%s/%s/mbrot/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
+        print dirname
         workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
                                             session=session)
+        print workdir
 
         # copy the executable and wrapper script to the remote host
         mbwrapper = saga.filesystem.File('file://localhost/%s/mandelbrot.sh' % os.getcwd())
@@ -60,6 +62,11 @@ if __name__ == "__main__":
                                         (imgx/tilesx*x), (imgx/tilesx*(x+1)),
                                         (imgy/tilesy*y), (imgy/tilesy*(y+1)),
                                         outputfile]
+                jd.spmd_variation  = 'serial'
+                # $ qconf -sql
+                # $ qconf -sq all.q
+                jd.queue = "free.q"
+
                 # create the job from the description
                 # above, launch it and add it to the list of jobs
                 job = jobservice.create_job(jd)

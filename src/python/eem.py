@@ -8,7 +8,7 @@ import scipy.stats as sps
 from datetime import datetime
 
 
-def eemsim(ampsize=2, P=4, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/2):
+def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/2):
 # initialize variables
 # =============================
 
