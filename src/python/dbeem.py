@@ -1,37 +1,38 @@
-import sqlalchemy
 import os
+import sys
+import sqlalchemy
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, String
-from sqlalchemy.orm import sessionmaker
 
-# database setup
-# ==========================
-# now = datetime.now()
-# tstring = now.strftime("%Y%m%dT%H%M%S")
-# par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
-# db_name = par_string + "_" + tstring + ".sqlite"
-# print db_name
+def simdbsm(db_name="test.db"):
 
-db_name = "test.db"
+  # database setup
+  # ==========================
+  # now = datetime.now()
+  # tstring = now.strftime("%Y%m%dT%H%M%S")
+  # par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
+  # db_name = par_string + "_" + tstring + ".sqlite"
+  # print db_name
 
-# if os.path.isfile(db_name):
-#    os.remove(db_name)
+  # db_name = "test.db"
 
-# Connect
-# ====================
-# url info
-# http://docs.sqlalchemy.org/en/rel_0_8/core/engines.html?highlight=engine#sqlite
-#engine = create_engine('sqlite:///:memory:', echo=False)
-engine = create_engine('sqlite:///' + db_name, echo=False)
+  # if os.path.isfile(db_name):
+  #    os.remove(db_name)
 
-# declare a mapping
-# ====================
-Base = declarative_base()
+  # Connect
+  # ====================
+  # url info
+  # http://docs.sqlalchemy.org/en/rel_0_8/core/engines.html?highlight=engine#sqlite
+  #engine = create_engine('sqlite:///:memory:', echo=False)
+  engine = create_engine('sqlite:///' + db_name, echo=False)
 
-class Simulation(Base):
+  Base = declarative_base()
+  
+  class Simulation(Base):
      __tablename__ = 'simulations'
 
      id = Column(Integer, primary_key=True)
@@ -53,9 +54,9 @@ class Simulation(Base):
      def __repr__(self):
         return "<Simulation( id=%d, amp=%d, period=%d, ssmix=%.2f, mutrate=%.2f, popsize=%d)>" %\
          (self.id, self.amplitude, self.period, self.ssmix,\
-         	self.mutrate, self.popsize)
+          self.mutrate, self.popsize)
 
-class Individual(Base):
+  class Individual(Base):
      __tablename__ = 'individuals'
      id = Column(Integer, primary_key=True)
      proportion = Column(Float, nullable=False)
@@ -72,15 +73,16 @@ class Individual(Base):
          return "<Individual(simid=%d, id=%d, proportion=%.2f, mean=%.2f, std=%.2f)>" %\
           (self.simulation_id, self.id, self.proportion, self.mean, self.std)
 
-Base.metadata.create_all(engine)
+  Base.metadata.create_all(engine)
 
-# creating a session
-# ====================
+  # creating a session
+  # ====================
 
-Session = sessionmaker()
-Session.configure(bind=engine)
-session = Session()
+  Session = sessionmaker()
+  Session.configure(bind=engine)
+  session = Session()
 
+  return session, Simulation, Individual
 # Working with Related Objects
 # ====================
 
@@ -120,4 +122,20 @@ session = Session()
 # 	filter_by(proportion=0.2).all()
 
 # test3Sim1 = session.query(Individual).\
-# 	filter_by(std=0.1).all()	
+# 	filter_by(std=0.1).all()
+
+# if __name__ == "__main__":
+
+#     args = sys.argv[1:]
+#     if len(args) < 1:
+#         print "Usage: python %s dbfilename" % __file__
+#         sys.exit(-1)
+
+#     dbname = string(sys.argv[1])
+       
+#     # filename = None 
+#     # if len(args) == 7:
+#     #     filename = str(sys.argv[7])
+    
+#     simdbsm(dbname)
+#     sys.exit(0)	

@@ -157,3 +157,25 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
     # return
     # ============================
     return Pop, avggen
+
+################################################################################
+##
+if __name__ == "__main__":
+
+    args = sys.argv[1:]
+    if len(args) < 6:
+        print "Usage: python %s ampsize=2 P=25 ssmix=0.9 mutrate=0.1 popsize=1000 maxtime=10**5/2" % __file__
+        sys.exit(-1)
+
+    sAmp = int(sys.argv[1])
+    tPer = int(sys.argv[2])
+    sMix = float(sys.argv[3])
+    mRat = float(sys.argv[4])
+    pSiz = int(sys.argv[5])
+    mTim = int(sys.argv[6])
+   
+    # filename = None 
+    # if len(args) == 7:
+    #     filename = str(sys.argv[7])
+    eemsim(sAmp, tPer, sMix, mRat, pSiz, mTim)
+    sys.exit(0)

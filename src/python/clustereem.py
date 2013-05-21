@@ -2,6 +2,13 @@ import os
 import sys
 import time
 import saga
+
+# import libraries
+import numpy as np
+
+# import local
+import eem
+import dbeem
 from PIL import Image
 
 REMOTE_HOST = "albert.einstein.yu.edu"
@@ -16,6 +23,26 @@ imgy = 2048
 tilesx = 2
 tilesy = 2
 
+
+# define parameters
+# ========================================
+
+minamp = 1
+maxamp = 3
+amps = range(minamp,maxamp)
+
+minperiod = 3
+maxperiod = 5
+periods = range(minperiod,maxperiod)
+
+minmix = 0.5
+maxmix = 0.7
+ssmixs = np.arange(minmix,maxmix,0.1)
+
+mutrate = 0.1
+popsize = 100
+maxtime = 10**3
+
 if __name__ == "__main__":
     try:
         # Your ssh identity on the remote machine
@@ -29,16 +56,16 @@ if __name__ == "__main__":
         jobs = []
 
         # create a working directory in /scratch
-        dirname = '%s/%s/mbrot/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
+        dirname = '%s/%s/eem/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
         
         workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
                                             session=session)
         
 
         # copy the executable and wrapper script to the remote host
-        mbwrapper = saga.filesystem.File('file://localhost/%s/mandelbrot.sh' % os.getcwd())
+        mbwrapper = saga.filesystem.File('file://localhost/%s/eem.sh' % os.getcwd())
         mbwrapper.copy(workdir.get_url())
-        mbexe = saga.filesystem.File('file://localhost/%s/mandelbrot.py' % os.getcwd())
+        mbexe = saga.filesystem.File('file://localhost/%s/eem.py' % os.getcwd())
         mbexe.copy(workdir.get_url())
 
         # the saga job services connects to and provides a handle
@@ -46,33 +73,32 @@ if __name__ == "__main__":
         # fork can be replaced with ssh here:
         jobservice = saga.job.Service(REMOTE_JOB_ENDPOINT, session=session)
 
-        for x in range(0, tilesx):
-            for y in range(0, tilesy):
+        for amp in amps:
+            for period in periods:
+                for ssmix in ssmixs:
 
-                # describe a single Mandelbrot job. we're using the
-                # directory created above as the job's working directory
-                outputfile = 'tile_x%s_y%s.gif' % (x, y)
-                jd = saga.job.Description()
-                #jd.queue             = "development"
-                jd.wall_time_limit   = 10
-                jd.total_cpu_count   = 1
-                jd.working_directory = workdir.get_url().path
-                jd.executable        = 'sh'
-                jd.arguments         = ['mandelbrot.sh', imgx, imgy, 
-                                        (imgx/tilesx*x), (imgx/tilesx*(x+1)),
-                                        (imgy/tilesy*y), (imgy/tilesy*(y+1)),
-                                        outputfile]
-                jd.spmd_variation  = 'serial'
-                # $ qconf -sql
-                # $ qconf -sq all.q
-                jd.queue = "free.q"
+                    # describe a single Mandelbrot job. we're using the
+                    # directory created above as the job's working directory
+                    outputfile = 'tile_x%s_y%s.gif' % (x, y)
+                    jd = saga.job.Description()
+                    #jd.queue             = "development"
+                    jd.wall_time_limit   = 10
+                    jd.total_cpu_count   = 1
+                    jd.working_directory = workdir.get_url().path
+                    jd.executable        = 'sh'
+                    jd.arguments         = ['eem.sh',amp,period,ssmix,
+                                            mutrate,popsize,maxtime,outputfile]
+                    jd.spmd_variation  = 'serial'
+                    # $ qconf -sql
+                    # $ qconf -sq all.q
+                    jd.queue = "free.q"
 
-                # create the job from the description
-                # above, launch it and add it to the list of jobs
-                job = jobservice.create_job(jd)
-                job.run()
-                jobs.append(job)
-                print ' * Submitted %s. Output will be written to: %s' % (job.id, outputfile)
+                    # create the job from the description
+                    # above, launch it and add it to the list of jobs
+                    job = jobservice.create_job(jd)
+                    job.run()
+                    jobs.append(job)
+                    print ' * Submitted %s. Output will be written to: %s' % (job.id, outputfile)
 
         # wait for all jobs to finish
         while len(jobs) > 0:
