@@ -9,20 +9,11 @@ import numpy as np
 # import local
 import eem
 import dbeem
-from PIL import Image
+#from PIL import Image
 
 REMOTE_HOST = "albert.einstein.yu.edu"
 REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
 REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
-
-# the dimension (in pixel) of the whole fractal
-imgx = 2048 
-imgy = 2048
-
-# the number of tiles in X and Y direction
-tilesx = 2
-tilesy = 2
-
 
 # define parameters
 # ========================================
@@ -65,13 +56,22 @@ if __name__ == "__main__":
         # copy the executable and wrapper script to the remote host
         mbwrapper = saga.filesystem.File('file://localhost/%s/eem.sh' % os.getcwd())
         mbwrapper.copy(workdir.get_url())
-        mbexe = saga.filesystem.File('file://localhost/%s/eem.py' % os.getcwd())
-        mbexe.copy(workdir.get_url())
+        #mbexe = saga.filesystem.File('file://localhost/%s/eem.py' % os.getcwd())
+        #mbexe.copy(workdir.get_url())
+
+        localdir = saga.filesystem.Directory('sftp://localhost/%s' % os.getcwd())
+        pyfiles = localdir.list()
+                
+        for f in pyfiles :
+            if f.path.endswith('eem.py') :
+                localdir.copy (f, workdir.get_url())
+
 
         # the saga job services connects to and provides a handle
         # to a remote machine. In this case, it's your machine.
         # fork can be replaced with ssh here:
         jobservice = saga.job.Service(REMOTE_JOB_ENDPOINT, session=session)
+        outputfile = 'test.db'
 
         for amp in amps:
             for period in periods:
@@ -79,7 +79,8 @@ if __name__ == "__main__":
 
                     # describe a single Mandelbrot job. we're using the
                     # directory created above as the job's working directory
-                    outputfile = 'tile_x%s_y%s.gif' % (x, y)
+                    #outputfile = 'eem_%d_%d_%.2f.db' % (amp, period, ssmix)
+                    
                     jd = saga.job.Description()
                     #jd.queue             = "development"
                     jd.wall_time_limit   = 10
@@ -110,22 +111,22 @@ if __name__ == "__main__":
             time.sleep(5)
 
         # copy image tiles back to our 'local' directory
-        for image in workdir.list('*.gif'):
+        for image in workdir.list('*.db'):
             print ' * Copying %s/%s/%s back to %s' % (REMOTE_FILE_ENDPOINT,
                                                       workdir.get_url(),
                                                       image, os.getcwd())
             workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
 
         # stitch together the final image
-        fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
-        print ' * Stitching together the whole fractal: mandelbrot_full.gif'
-        for x in range(0, tilesx):
-            for y in range(0, tilesy):
-                partimage = Image.open('tile_x%s_y%s.gif' % (x, y))
-                fullimage.paste(partimage,
-                                (imgx/tilesx*x, imgy/tilesy*y,
-                                 imgx/tilesx*(x+1), imgy/tilesy*(y+1)))
-        fullimage.save("mandelbrot_full.gif", "GIF")
+        # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
+        # print ' * Stitching together the whole fractal: mandelbrot_full.gif'
+        # for x in range(0, tilesx):
+        #     for y in range(0, tilesy):
+        #         partimage = Image.open('tile_x%s_y%s.gif' % (x, y))
+        #         fullimage.paste(partimage,
+        #                         (imgx/tilesx*x, imgy/tilesy*y,
+        #                          imgx/tilesx*(x+1), imgy/tilesy*(y+1)))
+        # fullimage.save("mandelbrot_full.gif", "GIF")
         sys.exit(0)
 
     except saga.SagaException, ex:
