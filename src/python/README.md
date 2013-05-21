@@ -41,6 +41,10 @@ Virtualenv (i.e. sagaenv in this case) can be deactivated with
 
 but it needs to be active to make use of the libraries it contains.
 
+# Local information
+
+Must configure key-based login to localhost for file manipulation
+
 # Cluster information
 
 For Python 2.7.3 you may need to add something like
