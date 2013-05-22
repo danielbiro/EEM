@@ -24,15 +24,17 @@ mutrate = 0.1
 popsize = 100
 maxtime = 10**3
 
+session, Simulation, Individual = dbeem.simdbsm("jigga.db")
+
 for amp in amps:
 	for period in periods:
 		for ssmix in ssmixs:
 			# run simulation
 			Pop, avggen = eem.eemsim(amp,period,ssmix,mutrate,popsize,maxtime)
 			
-			sim = dbeem.Simulation(amp,period,ssmix,mutrate,popsize)
+			sim = Simulation(amp,period,ssmix,mutrate,popsize)
 			sim.individuals = []
 			for row in Pop:
-				sim.individuals.append(dbeem.Individual(row[0],row[1],row[2]))
-			dbeem.session.add(sim)
-			dbeem.session.commit()	
+				sim.individuals.append(Individual(row[0],row[1],row[2]))
+			session.add(sim)
+			session.commit()	

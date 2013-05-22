@@ -2,11 +2,16 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.stats as sps
+#import scipy.stats as sps
 #import sqlite3 as sqlite
 
 from datetime import datetime
 
+
+def normpdf(x, mu, sigma):
+    u = (x-mu)/abs(sigma)
+    y = (1/(np.sqrt(2*np.pi)*abs(sigma)))*np.exp(-u*u/2)
+    return y
 
 def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/2):
 # initialize variables
@@ -51,29 +56,6 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
     extinct = 0.001
     newstrain = 0.01
 
-    # database setup
-    # ==========================
-    # now = datetime.now()
-    # tstring = now.strftime("%Y%m%dT%H%M%S")
-    # par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
-    # db_name = par_string + "_" + tstring + ".sqlite"
-    # print db_name
-
-    # if os.path.isfile(db_name):
-    #   os.remove(db_name)
-
-    # cxn = sqlite.connect(db_name)
-    # cursor = cxn.cursor()
-    # query = """
-    # CREATE TABLE results(
-    # proportion REAL,
-    # mean REAL,
-    # standdev REAL,
-    # PRIMARY KEY (proportion, mean, standdev)
-    # )
-    # """
-    # cursor.execute(query)
-
     # time loop
     # ============================
     for i in range(maxtime):
@@ -82,8 +64,8 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
         temp3 = np.nonzero(Pop[:,0] != 0)[0]
         Pop[temp3][:,0] = Pop[temp3][:,0]*\
         np.exp(\
-          (sps.norm.pdf(Env[i],Pop[temp3][:,1],Pop[temp3][:,2]))/\
-          (sps.norm.pdf(0,0,Pop[temp3][:,2]))*\
+          (normpdf(Env[i],Pop[temp3][:,1],Pop[temp3][:,2]))/\
+          (normpdf(0,0,Pop[temp3][:,2]))*\
           (k/(Pop[temp3][:,2]**2+k)))
         Pop[:,0] = Pop[:,0]/np.sum(Pop[:,0])
         
@@ -157,3 +139,24 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
     # return
     # ============================
     return Pop, avggen
+
+# ========================================
+if __name__ == "__main__":
+
+    args = sys.argv[1:]
+    if len(args) < 6:
+        print "Usage: python %s ampsize=2 P=25 ssmix=0.9 mutrate=0.1 popsize=1000 maxtime=10**5/2" % __file__
+        sys.exit(-1)
+
+    sAmp = int(sys.argv[1])
+    tPer = int(sys.argv[2])
+    sMix = float(sys.argv[3])
+    mRat = float(sys.argv[4])
+    pSiz = int(sys.argv[5])
+    mTim = int(sys.argv[6])
+   
+    # filename = None 
+    # if len(args) == 7:
+    #     filename = str(sys.argv[7])
+    eemsim(sAmp, tPer, sMix, mRat, pSiz, mTim)
+    sys.exit(0)

@@ -30,10 +30,10 @@ if __name__ == "__main__":
 
         # create a working directory in /scratch
         dirname = '%s/%s/mbrot/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
-        print dirname
+        
         workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
                                             session=session)
-        print workdir
+        
 
         # copy the executable and wrapper script to the remote host
         mbwrapper = saga.filesystem.File('file://localhost/%s/mandelbrot.sh' % os.getcwd())

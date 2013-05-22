@@ -1,3 +1,4 @@
+# import libraries
 import sys
 import os
 import matplotlib.pyplot as plt
@@ -5,19 +6,22 @@ import numpy as np
 import scipy.stats as sps
 from itertools import chain
 
-import dbeem as db
+# import local
+import dbeem
 
 #binary flags
 plotend = 1
 saveplot = 1 
 showplot = 0
 
-simids = db.session.query(db.Simulation.id).all()
+session, Simulation, Individual = dbeem.simdbsm("test.db")
+
+simids = session.query(Simulation.id).all()
 simids = list(chain.from_iterable(simids))
 
 for i in simids:
-	rows = db.session.query\
-			(db.Individual.proportion, db.Individual.mean, db.Individual.std).\
+	rows = session.query\
+			(Individual.proportion, Individual.mean, Individual.std).\
 			filter_by(simulation_id=i).all()
 	Pop = zip(*rows)
 	Pop = np.array([tuple(j) for j in Pop])
