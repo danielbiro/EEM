@@ -14,7 +14,7 @@ plotend = 1
 saveplot = 1 
 showplot = 0
 
-session, Simulation, Individual = dbeem.simdbsm("test.db")
+session, Simulation, Individual = dbeem.simdbsm("test.db",1)
 
 simids = session.query(Simulation.id).all()
 simids = list(chain.from_iterable(simids))
