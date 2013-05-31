@@ -11,7 +11,7 @@ import dbeem
 
 def writesim(amp,period,ssmix,mutrate,popsize,maxtime,dbname):
     Pop, avggen = eem.eemsim(amp,period,ssmix,mutrate,popsize,maxtime)
-    session, Simulation, Individual = dbeem.simdbsm(dbname)
+    session, Simulation, Individual = dbeem.simdbsm(db_name=dbname,psqlflag=1,schemaflag=0,jobid=1)
 
     # write data to db
     # ====================
@@ -20,7 +20,8 @@ def writesim(amp,period,ssmix,mutrate,popsize,maxtime,dbname):
     for row in Pop:
     	sim.individuals.append(Individual(row[0],row[1],row[2]))
     session.add(sim)
-    session.commit()	
+    session.commit()
+    session.close()	
 
 if __name__ == "__main__":
 

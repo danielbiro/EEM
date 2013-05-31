@@ -9,7 +9,9 @@ import numpy as np
 # import local
 import eem
 import dbeem
-#from PIL import Image
+
+# time
+from datetime import datetime
 
 REMOTE_HOST = "albert.einstein.yu.edu"
 REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
@@ -46,8 +48,11 @@ if __name__ == "__main__":
         # list that holds the jobs
         jobs = []
 
+        now = datetime.now()
+        tstring = now.strftime("%Y%m%dT%H%M%S")
+
         # create a working directory in /scratch
-        dirname = '%s/%s/eem/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
+        dirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/',tstring)
         
         workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
                                             session=session)
@@ -111,11 +116,13 @@ if __name__ == "__main__":
             time.sleep(5)
 
         # copy image tiles back to our 'local' directory
-        for image in workdir.list('*.db'):
-            print ' * Copying %s/%s/%s back to %s' % (REMOTE_FILE_ENDPOINT,
-                                                      workdir.get_url(),
-                                                      image, os.getcwd())
-            workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        # for image in workdir.list('*.db'):
+        #     print ' * Copying %s/%s/%s back to %s' % (REMOTE_FILE_ENDPOINT,
+        #                                               workdir.get_url(),
+        #                                               image, os.getcwd())
+        #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        for resultfiles in workdir.list('*'):
+            workdir.copy(resultfiles,'file://localhost/%s/results' % os.getcwd())
 
         # stitch together the final image
         # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
