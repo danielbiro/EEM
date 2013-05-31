@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, String
 
-def simdbsm(db_name="test.db"):
+def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
 
   # database setup
   # ==========================
@@ -28,12 +28,21 @@ def simdbsm(db_name="test.db"):
   # url info
   # http://docs.sqlalchemy.org/en/rel_0_8/core/engines.html?highlight=engine#sqlite
   #engine = create_engine('sqlite:///:memory:', echo=False)
-  engine = create_engine('sqlite:///' + db_name, echo=False)
+  if psqlflag:
+    engine = create_engine('postgresql://csmith:csmith@postgres1.local:5432/csmithdb', echo=False)
+  else:
+    engine = create_engine('sqlite:///' + db_name, echo=False)
+
+  if psqlflag & schemaflag:
+    simname = 'sim' + str(jobid)
 
   Base = declarative_base()
   
   class Simulation(Base):
      __tablename__ = 'simulations'
+     if psqlflag & schemaflag:
+      __tableargs__ = {'schema':simname}
+
 
      id = Column(Integer, primary_key=True)
      amplitude = Column(Integer)
@@ -58,6 +67,9 @@ def simdbsm(db_name="test.db"):
 
   class Individual(Base):
      __tablename__ = 'individuals'
+     if psqlflag & schemaflag:
+      __tableargs__ = {'schema':simname}
+
      id = Column(Integer, primary_key=True)
      proportion = Column(Float, nullable=False)
      mean = Column(Float, nullable=False)

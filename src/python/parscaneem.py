@@ -24,7 +24,7 @@ mutrate = 0.1
 popsize = 100
 maxtime = 10**3
 
-session, Simulation, Individual = dbeem.simdbsm("jigga.db")
+session, Simulation, Individual = dbeem.simdbsm(psqlflag=1,schemaflag=0,jobid=1)
 
 for amp in amps:
 	for period in periods:

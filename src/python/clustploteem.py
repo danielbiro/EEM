@@ -9,7 +9,9 @@ import numpy as np
 # import local
 import eem
 import dbeem
-#from PIL import Image
+
+# time
+from datetime import datetime
 
 REMOTE_HOST = "albert.einstein.yu.edu"
 REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
@@ -18,21 +20,21 @@ REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 # define parameters
 # ========================================
 
-minamp = 1
-maxamp = 3
-amps = range(minamp,maxamp)
+# minamp = 1
+# maxamp = 3
+# amps = range(minamp,maxamp)
 
-minperiod = 3
-maxperiod = 5
-periods = range(minperiod,maxperiod)
+# minperiod = 3
+# maxperiod = 5
+# periods = range(minperiod,maxperiod)
 
-minmix = 0.5
-maxmix = 0.7
-ssmixs = np.arange(minmix,maxmix,0.1)
+# minmix = 0.5
+# maxmix = 0.7
+# ssmixs = np.arange(minmix,maxmix,0.1)
 
-mutrate = 0.1
-popsize = 100
-maxtime = 10**3
+# mutrate = 0.1
+# popsize = 100
+# maxtime = 10**3
 
 if __name__ == "__main__":
     try:
@@ -46,15 +48,21 @@ if __name__ == "__main__":
         # list that holds the jobs
         jobs = []
 
+        now = datetime.now()
+        tstring = now.strftime("%Y%m%dT%H%M%S")
+
         # create a working directory in /scratch
-        dirname = '%s/%s/eem/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/')
+        remoteresultsdirname = '%s/%s/results/ploteem%s/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/',tstring)
         
-        workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
+        workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
         
+        localresultsdirname  = 'file://localhost/%s/results/ploteem%s' % (os.getcwd(),tstring)
+        localresultsdir = saga.filesystem.Directory(localresultsdirname, saga.filesystem.CREATE,
+                                            session=session)
 
         # copy the executable and wrapper script to the remote host
-        mbwrapper = saga.filesystem.File('file://localhost/%s/eem.sh' % os.getcwd())
+        mbwrapper = saga.filesystem.File('file://localhost/%s/ploteem.sh' % os.getcwd())
         mbwrapper.copy(workdir.get_url())
         #mbexe = saga.filesystem.File('file://localhost/%s/eem.py' % os.getcwd())
         #mbexe.copy(workdir.get_url())
@@ -73,33 +81,33 @@ if __name__ == "__main__":
         jobservice = saga.job.Service(REMOTE_JOB_ENDPOINT, session=session)
         outputfile = 'test.db'
 
-        for amp in amps:
-            for period in periods:
-                for ssmix in ssmixs:
+        # for amp in amps:
+        #     for period in periods:
+        #         for ssmix in ssmixs:
 
                     # describe a single Mandelbrot job. we're using the
                     # directory created above as the job's working directory
                     #outputfile = 'eem_%d_%d_%.2f.db' % (amp, period, ssmix)
-                    
-                    jd = saga.job.Description()
-                    #jd.queue             = "development"
-                    jd.wall_time_limit   = 10
-                    jd.total_cpu_count   = 1
-                    jd.working_directory = workdir.get_url().path
-                    jd.executable        = 'sh'
-                    jd.arguments         = ['eem.sh',amp,period,ssmix,
-                                            mutrate,popsize,maxtime,outputfile]
-                    jd.spmd_variation  = 'serial'
-                    # $ qconf -sql
-                    # $ qconf -sq all.q
-                    jd.queue = "free.q"
+        
 
-                    # create the job from the description
-                    # above, launch it and add it to the list of jobs
-                    job = jobservice.create_job(jd)
-                    job.run()
-                    jobs.append(job)
-                    print ' * Submitted %s. Output will be written to: %s' % (job.id, outputfile)
+        jd = saga.job.Description()
+        #jd.queue             = "development"
+        jd.wall_time_limit   = 10
+        jd.total_cpu_count   = 1
+        jd.working_directory = workdir.get_url().path
+        jd.executable        = 'sh'
+        jd.arguments         = ['ploteem.sh',workdir.get_url().path]
+        jd.spmd_variation  = 'serial'
+        # $ qconf -sql
+        # $ qconf -sq all.q
+        jd.queue = "free.q"
+
+        # create the job from the description
+        # above, launch it and add it to the list of jobs
+        job = jobservice.create_job(jd)
+        job.run()
+        jobs.append(job)
+        print ' * Submitted %s. Output will be written to: %s' % (job.id, workdir.get_url().path)
 
         # wait for all jobs to finish
         while len(jobs) > 0:
@@ -111,11 +119,13 @@ if __name__ == "__main__":
             time.sleep(5)
 
         # copy image tiles back to our 'local' directory
-        for image in workdir.list('*.db'):
-            print ' * Copying %s/%s/%s back to %s' % (REMOTE_FILE_ENDPOINT,
-                                                      workdir.get_url(),
-                                                      image, os.getcwd())
-            workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        # for image in workdir.list('*.db'):
+        #     print ' * Copying %s/%s/%s back to %s' % (REMOTE_FILE_ENDPOINT,
+        #                                               workdir.get_url(),
+        #                                               image, os.getcwd())
+        #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        for resultfiles in workdir.list():
+            workdir.copy(resultfiles,localresultsdir.get_url())
 
         # stitch together the final image
         # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
