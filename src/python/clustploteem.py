@@ -52,7 +52,7 @@ if __name__ == "__main__":
         tstring = now.strftime("%Y%m%dT%H%M%S")
 
         # create a working directory in /scratch
-        remoteresultsdirname = '%s/%s/results/ploteem%s/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/',tstring)
+        remoteresultsdirname = '%s/%s/results/ploteem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
         
         workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         jd.total_cpu_count   = 1
         jd.working_directory = workdir.get_url().path
         jd.executable        = 'sh'
-        jd.arguments         = ['ploteem.sh',workdir.get_url().path]
+        jd.arguments         = ['ploteem.sh','.']
         jd.spmd_variation  = 'serial'
         # $ qconf -sql
         # $ qconf -sq all.q
