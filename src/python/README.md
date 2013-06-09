@@ -4,6 +4,8 @@
 1. dbeem.py - database model of data output from a batch run of parscaneem
 1. ploteem.py - query the database produced by parscaneem and plot data
 1. core.py - (may be removed) raw translation of the matlab/octave to python
+1. clustruneem.py - run eem.py on a SGE cluster writing results to an attached postgresql database server
+1. clustploteem.py - extract data from remote postgresql database server, produce figures and copy back to local directory
 
 # Dependencies
 ## Python

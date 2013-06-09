@@ -52,7 +52,7 @@ if __name__ == "__main__":
         tstring = now.strftime("%Y%m%dT%H%M%S")
 
         # create a working directory in /scratch
-        dirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, '/home/cameron/',tstring)
+        dirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
         
         workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
                                             session=session)
