@@ -14,7 +14,7 @@ import dbeem
 from datetime import datetime
 
 REMOTE_HOST = "albert.einstein.yu.edu"
-REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
+REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST
 REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 
 # define parameters
@@ -72,10 +72,10 @@ if __name__ == "__main__":
 
         # create a working directory in /scratch
         remoteresultsdirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
-        
+
         workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
-        
+
         localresultsdirname  = 'file://localhost/%s/results/eem%s' % (os.getcwd(),tstring)
         localresultsdir = saga.filesystem.Directory(localresultsdirname, saga.filesystem.CREATE,
                                             session=session)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
         localdir = saga.filesystem.Directory('sftp://localhost/%s' % os.getcwd())
         pyfiles = localdir.list()
-                
+
         for f in pyfiles :
             if f.path.endswith('eem.py') :
                 localdir.copy (f, workdir.get_url())
@@ -107,15 +107,15 @@ if __name__ == "__main__":
                     # describe a single Mandelbrot job. we're using the
                     # directory created above as the job's working directory
                     #outputfile = 'eem_%d_%d_%.2f.db' % (amp, period, ssmix)
-                    
+
                     jd = saga.job.Description()
                     #jd.queue             = "development"
                     jd.wall_time_limit   = 10
                     jd.total_cpu_count   = 1
                     jd.working_directory = workdir.get_url().path
                     jd.executable        = 'sh'
-                    jd.arguments         = ['eem.sh',amp,period,ssmix,
-                                            mutrate,popsize,maxtime,outputfile]
+                    jd.arguments         = ['eem.sh', amp, period, ssmix,
+                                            mutrate, popsize, maxtime, outputfile]
                     jd.spmd_variation  = 'serial'
                     # $ qconf -sql
                     # $ qconf -sq all.q
@@ -126,7 +126,8 @@ if __name__ == "__main__":
                     job = jobservice.create_job(jd)
                     job.run()
                     jobs.append(job)
-                    print ' * Submitted %s. Output will be written to: %s' % (job.id, outputfile)
+                    print ' * Submitted %s. Output will be written to: %s' % (
+                        job.id, outputfile)
 
         # wait for all jobs to finish
         while len(jobs) > 0:
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         #                                               image, os.getcwd())
         #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
         for resultfiles in workdir.list('*'):
-            workdir.copy(resultfiles,localresultsdir.get_url())
+            workdir.copy(resultfiles, localresultsdir.get_url())
 
         # stitch together the final image
         # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
