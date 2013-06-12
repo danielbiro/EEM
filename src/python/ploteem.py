@@ -40,8 +40,9 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
 					filter_by(simulation_id=i).all()
 		Pop = zip(*indrows)
 		Pop = np.array([tuple(j) for j in Pop])
+		Pop = Pop.transpose()
 
-		SimPopDat.append([Sim[0,0], Sim[0,1], np.mean(Pop[:,3])])
+		SimPopDat.append([Sim[0,0], Sim[0,1], np.mean(Pop[:,2])])
 		
 		# Plot the full population distribution
 		# =======================================
@@ -61,11 +62,13 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
 			fig1 = plt.figure(1)
 			I = np.argsort(Pop[:,2])
 			f1p1 = plt.stem(Pop[I,2], Pop[I,0], 
-							linefmt='b-', markerfmt='bo', basefmt='r-')          
+							linefmt='k-', markerfmt='ro', basefmt='r-')          
 			if saveplot:
 				plt.savefig(figdir + '/' + nameroot + 'stem')
 				if showplot:
 					plt.show()
+
+			plt.close()
 	
 	# Plot population averaged quantities
 	# =====================================            
@@ -81,8 +84,9 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
 			plt.savefig(figdir + '/' + 'ssVarvsPer')
 			if showplot:
 				plt.show()
+		plt.close()
 
-		# plot avg ss var vs period
+		# plot avg ss var vs ssmix
 		fig3 = plt.figure(3)
 		I = np.argsort(SimPopArray[:,1])
 		f3p1 = plt.plot(SimPopArray[I,1], SimPopArray[I,2], 
@@ -92,6 +96,7 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
 			plt.savefig(figdir + '/' + 'ssVarvsCont')
 			if showplot:
 				plt.show()
+		plt.close()
 
 
 if __name__ == "__main__":

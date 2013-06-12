@@ -20,21 +20,40 @@ REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 # define parameters
 # ========================================
 
-minamp = 1
+# testing
+# minamp = 1
+# maxamp = 3
+# amps = range(minamp,maxamp)
+
+# minperiod = 3
+# maxperiod = 5
+# periods = range(minperiod,maxperiod)
+
+# minmix = 0.5
+# maxmix = 0.7
+# ssmixs = np.arange(minmix,maxmix,0.1)
+
+# mutrate = 0.1
+# popsize = 100
+# maxtime = 10**3
+
+# simulation
+minamp = 2
 maxamp = 3
 amps = range(minamp,maxamp)
 
-minperiod = 3
-maxperiod = 5
+minperiod = 2
+maxperiod = 31
 periods = range(minperiod,maxperiod)
 
-minmix = 0.5
-maxmix = 0.7
+minmix = 0.1
+maxmix = 1.0
 ssmixs = np.arange(minmix,maxmix,0.1)
 
 mutrate = 0.1
-popsize = 100
-maxtime = 10**3
+popsize = 1000
+maxtime = 10**5/2
+
 
 if __name__ == "__main__":
     try:
@@ -52,11 +71,14 @@ if __name__ == "__main__":
         tstring = now.strftime("%Y%m%dT%H%M%S")
 
         # create a working directory in /scratch
-        dirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
+        remoteresultsdirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
         
-        workdir = saga.filesystem.Directory(dirname, saga.filesystem.CREATE,
+        workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
         
+        localresultsdirname  = 'file://localhost/%s/results/eem%s' % (os.getcwd(),tstring)
+        localresultsdir = saga.filesystem.Directory(localresultsdirname, saga.filesystem.CREATE,
+                                            session=session)
 
         # copy the executable and wrapper script to the remote host
         mbwrapper = saga.filesystem.File('file://localhost/%s/eem.sh' % os.getcwd())
@@ -122,7 +144,7 @@ if __name__ == "__main__":
         #                                               image, os.getcwd())
         #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
         for resultfiles in workdir.list('*'):
-            workdir.copy(resultfiles,'file://localhost/%s/results' % os.getcwd())
+            workdir.copy(resultfiles,localresultsdir.get_url())
 
         # stitch together the final image
         # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
