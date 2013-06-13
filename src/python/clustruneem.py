@@ -7,8 +7,8 @@ import saga
 import numpy as np
 
 # import local
-import eem
-import dbeem
+#import eem
+#import dbeem
 
 # time
 from datetime import datetime
@@ -17,46 +17,55 @@ REMOTE_HOST = "albert.einstein.yu.edu"
 REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST
 REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 
-# define parameters
-# ========================================
-
-# testing
-# minamp = 1
-# maxamp = 3
-# amps = range(minamp,maxamp)
-
-# minperiod = 3
-# maxperiod = 5
-# periods = range(minperiod,maxperiod)
-
-# minmix = 0.5
-# maxmix = 0.7
-# ssmixs = np.arange(minmix,maxmix,0.1)
-
-# mutrate = 0.1
-# popsize = 100
-# maxtime = 10**3
-
-# simulation
-minamp = 2
-maxamp = 3
-amps = range(minamp,maxamp)
-
-minperiod = 2
-maxperiod = 31
-periods = range(minperiod,maxperiod)
-
-minmix = 0.1
-maxmix = 1.0
-ssmixs = np.arange(minmix,maxmix,0.1)
-
-mutrate = 0.1
-popsize = 1000
-maxtime = 10**5/2
-
-
 if __name__ == "__main__":
     try:
+        # define parameters
+        # ========================================
+
+        # testing
+        minamp = 1
+        maxamp = 3
+        amps = range(minamp,maxamp)
+
+        minperiod = 3
+        maxperiod = 5
+        periods = range(minperiod,maxperiod)
+
+        minmix = 0.5
+        maxmix = 0.7
+        ssmixs = np.arange(minmix,maxmix,0.1)
+
+        mutrate = 0.1
+        popsize = 100
+        maxtime = 10**3
+
+        # simulation
+        # minamp = 2
+        # maxamp = 3
+        # amps = range(minamp,maxamp)
+
+        # minperiod = 2
+        # maxperiod = 31
+        # periods = range(minperiod,maxperiod)
+
+        # minmix = 0.1
+        # maxmix = 1.0
+        # ssmixs = np.arange(minmix,maxmix,0.1)
+
+        # mutrate = 0.1
+        # popsize = 1000
+        # maxtime = 10**5/2
+
+        # Construct database url
+        db_server = 'postgresql'
+        db_uname = 'csmith'
+        db_pword = 'csmith'
+        db_hname = 'postgres1.local:5432'
+        db_name = 'csmithdb'
+
+        #db_url = 'postgresql://csmith:csmith@postgres1.local:5432/csmithdb'
+        db_url = db_server + '://' + db_uname + ':' + db_pword + '@' + db_hname + '/' + db_name
+
         # Your ssh identity on the remote machine
         ctx = saga.Context("ssh")
         ctx.user_id = "cameron"
@@ -68,21 +77,23 @@ if __name__ == "__main__":
         jobs = []
 
         now = datetime.now()
-        tstring = now.strftime("%Y%m%dT%H%M%S")
+        tstring = now.strftime("%Y%m%d%H%M%S")
 
-        # create a working directory in /scratch
+        # create a working directory in /scratch (/oxford on albert)
         remoteresultsdirname = '%s/%s/results/eem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
 
         workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
 
         localresultsdirname  = 'file://localhost/%s/results/eem%s' % (os.getcwd(),tstring)
-        localresultsdir = saga.filesystem.Directory(localresultsdirname, saga.filesystem.CREATE,
-                                            session=session)
+        localresultsdir = saga.filesystem.Directory(localresultsdirname,
+            saga.filesystem.CREATE, session=session)
 
         # copy the executable and wrapper script to the remote host
         mbwrapper = saga.filesystem.File('file://localhost/%s/eem.sh' % os.getcwd())
         mbwrapper.copy(workdir.get_url())
+        mbinitdb = saga.filesystem.File('file://localhost/%s/initdb.sh' % os.getcwd())
+        mbinitdb.copy(workdir.get_url())
         #mbexe = saga.filesystem.File('file://localhost/%s/eem.py' % os.getcwd())
         #mbexe.copy(workdir.get_url())
 
@@ -98,36 +109,53 @@ if __name__ == "__main__":
         # to a remote machine. In this case, it's your machine.
         # fork can be replaced with ssh here:
         jobservice = saga.job.Service(REMOTE_JOB_ENDPOINT, session=session)
-        outputfile = 'test.db'
 
+        # run a job to initialize the database tables and schema
+        jd = saga.job.Description()
+        jd.queue = "free.q"
+        jd.wall_time_limit   = 10
+        jd.total_cpu_count   = 1
+        jd.working_directory = workdir.get_url().path
+        jd.executable        = 'sh'
+        jd.arguments         = ['initdb.sh', db_url, tstring, 1]
+        jd.spmd_variation  = 'serial'
+
+        # create the job from the description
+        # above, launch it and add it to the list of jobs
+        job = jobservice.create_job(jd)
+        job.run()
+        jobs.append(job)
+        while len(jobs) > 0:
+            for job in jobs:
+                jobstate = job.get_state()
+                print ' * Initialize DB schema with ID eem%s Job %s status: %s' % (tstring, job.id, jobstate)
+                if jobstate in [saga.job.DONE, saga.job.FAILED]:
+                    jobs.remove(job)
+            time.sleep(5)
+
+        # loop through parameter values
         for amp in amps:
             for period in periods:
                 for ssmix in ssmixs:
 
-                    # describe a single Mandelbrot job. we're using the
-                    # directory created above as the job's working directory
-                    #outputfile = 'eem_%d_%d_%.2f.db' % (amp, period, ssmix)
-
                     jd = saga.job.Description()
-                    #jd.queue             = "development"
+                    jd.queue = "free.q"
                     jd.wall_time_limit   = 10
                     jd.total_cpu_count   = 1
                     jd.working_directory = workdir.get_url().path
                     jd.executable        = 'sh'
                     jd.arguments         = ['eem.sh', amp, period, ssmix,
-                                            mutrate, popsize, maxtime, outputfile]
+                                            mutrate, popsize, maxtime,
+                                            db_url, tstring]
                     jd.spmd_variation  = 'serial'
-                    # $ qconf -sql
-                    # $ qconf -sq all.q
-                    jd.queue = "free.q"
 
                     # create the job from the description
                     # above, launch it and add it to the list of jobs
                     job = jobservice.create_job(jd)
                     job.run()
                     jobs.append(job)
-                    print ' * Submitted %s. Output will be written to: %s' % (
-                        job.id, outputfile)
+                    print ' * Submitted %s. Output will be written to: \n\t%s' % (
+                        job.id, remoteresultsdirname)
 
         # wait for all jobs to finish
         while len(jobs) > 0:
@@ -144,6 +172,7 @@ if __name__ == "__main__":
         #                                               workdir.get_url(),
         #                                               image, os.getcwd())
         #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        print ' * Copying files back to \n\t%s' % localresultsdirname
         for resultfiles in workdir.list('*'):
             workdir.copy(resultfiles, localresultsdir.get_url())
 

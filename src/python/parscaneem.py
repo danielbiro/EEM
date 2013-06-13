@@ -24,17 +24,20 @@ mutrate = 0.1
 popsize = 100
 maxtime = 10**3
 
-session, Simulation, Individual = dbeem.simdbsm(psqlflag=1,schemaflag=0,jobid=1)
+session, simulation, individual = dbeem.simdbsm(db_url =
+    'postgresql://csmith:csmith@postgres1.local:5432/csmithdb',
+    schemaid=1, initflag=1)
 
 for amp in amps:
-	for period in periods:
-		for ssmix in ssmixs:
-			# run simulation
-			Pop, avggen = eem.eemsim(amp,period,ssmix,mutrate,popsize,maxtime)
-			
-			sim = Simulation(amp,period,ssmix,mutrate,popsize)
-			sim.individuals = []
-			for row in Pop:
-				sim.individuals.append(Individual(row[0],row[1],row[2]))
-			session.add(sim)
-			session.commit()	
+    for period in periods:
+        for ssmix in ssmixs:
+            # run simulation
+            pop, avggen = eem.eemsim(amp,period,ssmix,mutrate,popsize,maxtime)
+
+            sim = simulation(amp,period,ssmix,mutrate,popsize)
+            sim.individuals = []
+            for row in pop:
+                sim.individuals.append(individual(row[0],row[1],row[2]))
+            session.add(sim)
+            session.commit()
+            #session.close()

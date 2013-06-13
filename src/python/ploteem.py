@@ -12,15 +12,15 @@ import brewer2mpl as b2
 # import local
 import dbeem
 
-def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
+def ploteem(figdir=".", db_url='sqlite:///:memory:', schemaid='1', plotend=1, saveplot=1, showplot=0):
 
     # binary flags
     # plotend = 1
     # saveplot = 1
     # showplot = 0
 
-    session, simulation, individual = dbeem.simdbsm(psqlflag=1,schemaflag=0,
-                                                    jobid=1)
+    session, simulation, individual = dbeem.simdbsm(db_url=db_url,
+                                                    schemaid=schemaid)
 
     simids = session.query(simulation.id).all()
     simids = list(chain.from_iterable(simids))
@@ -123,7 +123,6 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
         fig4.suptitle('population mean steady state phenotype variance',
             fontweight='bold')
         ax1f4 = fig4.add_subplot(111)
-        fig4.subplots_adjust(top=0.85)
         ax1f4.set_xlabel('period')
         ax1f4.set_ylabel('continuity')
         cm = b2.get_map('BrBG', 'diverging', 11).mpl_colormap
@@ -148,6 +147,8 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     fdir = str(sys.argv[1])
+    dburl = str(sys.argv[2])
+    schid = str(sys.argv[3])
     #pEnd = int(sys.argv[2])
     #saPl = int(sys.argv[3])
     #shPl = int(sys.argv[4])
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     # if len(args) == 7:
     #     filename = str(sys.argv[7])
     #ploteem(fdir,pEnd,saPl,shPl)
-    ploteem(figdir=fdir)
+    ploteem(fdir,dburl,schid)
     sys.exit(0)
 
             # figure(2)
