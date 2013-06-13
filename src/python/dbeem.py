@@ -1,4 +1,4 @@
-import os
+#import os
 import sys
 
 from sqlalchemy import create_engine
@@ -7,42 +7,30 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, String
+from sqlalchemy.schema import MetaData
+from sqlalchemy.schema import CreateSchema
 
-def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
+def simdbsm(db_url='sqlite:///:memory:', schemaid=1, initflag=0):
 
   # database setup
   # ==========================
-  # now = datetime.now()
-  # tstring = now.strftime("%Y%m%dT%H%M%S")
-  # par_string = "amp"+str(ampsize)+"mix"+str(int(ssmix*100))+"P"+str(P)
-  # db_name = par_string + "_" + tstring + ".sqlite"
-  # print db_name
-
-  # db_name = "test.db"
-
-  # if os.path.isfile(db_name):
-  #    os.remove(db_name)
 
   # Connect
   # ====================
   # url info
   # http://docs.sqlalchemy.org/en/rel_0_8/core/engines.html?highlight=engine#sqlite
-  #engine = create_engine('sqlite:///:memory:', echo=False)
-  if psqlflag:
-    engine = create_engine('postgresql://csmith:csmith@postgres1.local:5432/csmithdb', echo=False)
-  else:
-    engine = create_engine('sqlite:///' + db_name, echo=False)
+  engine = create_engine(db_url, echo=False)
 
-  if psqlflag & schemaflag:
-    simname = 'sim' + str(jobid)
+  simname = 'eem' + str(schemaid)
 
-  Base = declarative_base()
-  
+  if initflag:
+    engine.execute(CreateSchema(simname))
+
+  mymeta = MetaData(schema=simname)
+  Base = declarative_base(metadata=mymeta)
+
   class Simulation(Base):
      __tablename__ = 'simulations'
-     if psqlflag & schemaflag:
-      __tableargs__ = {'schema':simname}
-
 
      id = Column(Integer, primary_key=True)
      amplitude = Column(Integer)
@@ -67,8 +55,6 @@ def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
 
   class Individual(Base):
      __tablename__ = 'individuals'
-     if psqlflag & schemaflag:
-      __tableargs__ = {'schema':simname}
 
      id = Column(Integer, primary_key=True)
      proportion = Column(Float, nullable=False)
@@ -85,7 +71,8 @@ def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
          return "<Individual(simid=%d, id=%d, proportion=%.2f, mean=%.2f, std=%.2f)>" %\
           (self.simulation_id, self.id, self.proportion, self.mean, self.std)
 
-  Base.metadata.create_all(engine)
+  if initflag:
+    Base.metadata.create_all(engine)
 
   # creating a session
   # ====================
@@ -95,6 +82,24 @@ def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
   session = Session()
 
   return session, Simulation, Individual
+
+if __name__ == "__main__":
+
+  args = sys.argv[1:]
+  if len(args) < 3:
+      print "Usage: python %s db_url=sqlite:///:memory: schemaid=1 initflag=0" % __file__
+      sys.exit(-1)
+
+  dburl = str(sys.argv[1])
+  schemaid = str(sys.argv[2])
+  initflag = int(sys.argv[3])
+
+  # filename = None
+  # if len(args) == 7:
+  #     filename = str(sys.argv[7])
+
+  simdbsm(dburl, schemaid, initflag)
+  sys.exit(0)
 # Working with Related Objects
 # ====================
 
@@ -128,26 +133,10 @@ def simdbsm(db_name="test.db",psqlflag=0,schemaflag=0,jobid=1):
 #          all()
 
 # test1Sim1 = session.query(Individual).\
-# 	filter_by(proportion=0.2).one() 
+# 	filter_by(proportion=0.2).one()
 
 # test2Sim1 = session.query(Individual).\
 # 	filter_by(proportion=0.2).all()
 
 # test3Sim1 = session.query(Individual).\
 # 	filter_by(std=0.1).all()
-
-# if __name__ == "__main__":
-
-#     args = sys.argv[1:]
-#     if len(args) < 1:
-#         print "Usage: python %s dbfilename" % __file__
-#         sys.exit(-1)
-
-#     dbname = string(sys.argv[1])
-       
-#     # filename = None 
-#     # if len(args) == 7:
-#     #     filename = str(sys.argv[7])
-    
-#     simdbsm(dbname)
-#     sys.exit(0)	

@@ -34,6 +34,7 @@ For [instant](http://saga-project.github.io/saga-python/doc/usage/install.html#u
     $ . $HOME/sagaenv/bin/activate
 
 To install dependencies
+
     $ module load gcc/4.5.1 # if on cluster
     $ [sudo] pip install numpy scipy matplotlib sqlalchemy saga-python
 

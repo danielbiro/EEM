@@ -14,7 +14,7 @@ import dbeem
 from datetime import datetime
 
 REMOTE_HOST = "albert.einstein.yu.edu"
-REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST 
+REMOTE_JOB_ENDPOINT = "sge+ssh://" + REMOTE_HOST
 REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 
 # define parameters
@@ -38,6 +38,20 @@ REMOTE_FILE_ENDPOINT = "sftp://" + REMOTE_HOST
 
 if __name__ == "__main__":
     try:
+        # Construct database url
+        db_server = 'postgresql'
+        db_uname = 'csmith'
+        db_pword = 'csmith'
+        db_hname = 'postgres1.local:5432'
+        db_name = 'csmithdb'
+
+        #db_url = 'postgresql://csmith:csmith@postgres1.local:5432/csmithdb'
+        db_url = db_server + '://' + db_uname + ':' + db_pword + '@' + db_hname + '/' + db_name
+
+        # The simulation id number (tstring in clustruneem.py) for plotting
+        figdir = '.'
+        simid = str(sys.argv[1])
+
         # Your ssh identity on the remote machine
         ctx = saga.Context("ssh")
         ctx.user_id = "cameron"
@@ -49,14 +63,14 @@ if __name__ == "__main__":
         jobs = []
 
         now = datetime.now()
-        tstring = now.strftime("%Y%m%dT%H%M%S")
+        tstring = now.strftime("%Y%m%d%H%M%S")
 
         # create a working directory in /scratch
         remoteresultsdirname = '%s/%s/results/ploteem%s/' % (REMOTE_FILE_ENDPOINT, 'home/cameron',tstring)
-        
+
         workdir = saga.filesystem.Directory(remoteresultsdirname, saga.filesystem.CREATE,
                                             session=session)
-        
+
         localresultsdirname  = 'file://localhost/%s/results/ploteem%s' % (os.getcwd(),tstring)
         localresultsdir = saga.filesystem.Directory(localresultsdirname, saga.filesystem.CREATE,
                                             session=session)
@@ -69,7 +83,7 @@ if __name__ == "__main__":
 
         localdir = saga.filesystem.Directory('sftp://localhost/%s' % os.getcwd())
         pyfiles = localdir.list()
-                
+
         for f in pyfiles :
             if f.path.endswith('eem.py') :
                 localdir.copy (f, workdir.get_url())
@@ -79,16 +93,7 @@ if __name__ == "__main__":
         # to a remote machine. In this case, it's your machine.
         # fork can be replaced with ssh here:
         jobservice = saga.job.Service(REMOTE_JOB_ENDPOINT, session=session)
-        outputfile = 'test.db'
 
-        # for amp in amps:
-        #     for period in periods:
-        #         for ssmix in ssmixs:
-
-                    # describe a single Mandelbrot job. we're using the
-                    # directory created above as the job's working directory
-                    #outputfile = 'eem_%d_%d_%.2f.db' % (amp, period, ssmix)
-        
 
         jd = saga.job.Description()
         #jd.queue             = "development"
@@ -96,7 +101,7 @@ if __name__ == "__main__":
         jd.total_cpu_count   = 1
         jd.working_directory = workdir.get_url().path
         jd.executable        = 'sh'
-        jd.arguments         = ['ploteem.sh','.']
+        jd.arguments         = ['ploteem.sh', figdir, db_url, simid]
         jd.spmd_variation  = 'serial'
         # $ qconf -sql
         # $ qconf -sq all.q
@@ -107,7 +112,7 @@ if __name__ == "__main__":
         job = jobservice.create_job(jd)
         job.run()
         jobs.append(job)
-        print ' * Submitted %s. Output will be written to: %s' % (job.id, workdir.get_url().path)
+        print ' * Submitted %s. Output will be written to: \n\t%s' % (job.id, remoteresultsdirname)
 
         # wait for all jobs to finish
         while len(jobs) > 0:
@@ -124,6 +129,7 @@ if __name__ == "__main__":
         #                                               workdir.get_url(),
         #                                               image, os.getcwd())
         #     workdir.copy(image, 'file://localhost/%s/' % os.getcwd())
+        print ' * Copying files back to \n\t%s' % localresultsdirname
         for resultfiles in workdir.list():
             workdir.copy(resultfiles,localresultsdir.get_url())
 
