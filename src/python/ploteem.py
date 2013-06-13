@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 #import scipy.stats as sps
 from itertools import chain
+import brewer2mpl as b2
 
 # import local
 import dbeem
@@ -18,77 +19,80 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
     # saveplot = 1
     # showplot = 0
 
-    session, Simulation, Individual = dbeem.simdbsm(psqlflag=1,schemaflag=0,
+    session, simulation, individual = dbeem.simdbsm(psqlflag=1,schemaflag=0,
                                                     jobid=1)
 
-    simids = session.query(Simulation.id).all()
+    simids = session.query(simulation.id).all()
     simids = list(chain.from_iterable(simids))
-    SimPopDat = []
+    simpopdat = []
 
     for i in simids:
 
         # Query the simulation database
         # ============================
-        simrows = session.query(Simulation.period,
-                                Simulation.ssmix).\
+        simrows = session.query(simulation.period,
+                                simulation.ssmix).\
                     filter_by(id=i).all()
-        Sim = np.array(simrows)
+        simdat = np.array(simrows)
 
-        indrows = session.query(Individual.proportion,
-                                Individual.mean,
-                                Individual.std).\
+        indrows = session.query(individual.proportion,
+                                individual.mean,
+                                individual.std).\
                     filter_by(simulation_id=i).all()
-        Pop = zip(*indrows)
-        Pop = np.array([tuple(j) for j in Pop])
-        Pop = Pop.transpose()
+        popdat = zip(*indrows)
+        popdat = np.array([tuple(j) for j in popdat])
+        popdat = popdat.transpose()
 
-        SimPopDat.append([Sim[0,0], Sim[0,1], np.mean(Pop[:,2])])
+        simpopdat.append([simdat[0,0], simdat[0,1], np.mean(popdat[:,2])])
 
         # Plot the full population distribution
         # =======================================
-        if plotend:
-            # Make the directory for figure output
-            if saveplot:
-                if not os.path.exists(figdir):
-                    os.makedirs(figdir)
-                nameroot = "sim" + str(i)
+        # if plotend:
+        #     # Make the directory for figure output
+        #     if saveplot:
+        #         if not os.path.exists(figdir):
+        #             os.makedirs(figdir)
+        #         nameroot = "sim" + str(i)
 
-            #define font size
-            plt.rc("font", size=20)
-            #plt.rc("text", usetex=True)
-            plt.rc("text", usetex=False)
+        #     #define font size
+        #     plt.rc("font", size=20)
+        #     #plt.rc("text", usetex=True)
+        #     plt.rc("text", usetex=False)
 
-            # figure(1)
-            fig1 = plt.figure(1)
-            fig1.suptitle('population distribution of steady state phenotype variance')
-            ax1f1 = fig1.add_subplot(111)
-            fig1.subplots_adjust(top=0.85)
-            ax1f1.set_title('period = %0.0f, ssmix = %0.1f' %
-                Sim[0,0] Sim[0,1])
-            ax1f1.set_xlabel('steady state phenotype variance')
-            ax1f1.set_ylabel('population proportion')
+        #     # figure(1)
+        #     fig1 = plt.figure(1)
+        #     fig1.suptitle('population distribution of steady state phenotype variance')
+        #     ax1f1 = fig1.add_subplot(111)
+        #     fig1.subplots_adjust(top=0.85)
+        #     ax1f1.set_title('period = %0.0f, ssmix = %0.1f' %
+        #         (simdat[0,0], simdat[0,1]))
+        #     ax1f1.set_xlabel('steady state phenotype variance')
+        #     ax1f1.set_ylabel('population proportion')
 
-            I = np.argsort(Pop[:,2])
-            f1p1 = plt.stem(Pop[I,2], Pop[I,0],
-                            linefmt='k-', markerfmt='ro', basefmt='r-')
-            if saveplot:
-                plt.savefig(figdir + '/' + nameroot + 'stem')
-                if showplot:
-                    plt.show()
+        #     ind = np.argsort(popdat[:,2])
+        #     f1p1 = plt.stem(popdat[ind,2], popdat[ind,0],
+        #                     linefmt='k-', markerfmt='ro', basefmt='r-')
+        #     if saveplot:
+        #         plt.savefig(figdir + '/' + nameroot + 'stem')
+        #         if showplot:
+        #             plt.show()
 
-            plt.close()
+        #     plt.close()
 
     # Plot population averaged quantities
     # =====================================
     if plotend:
-        SimPopArray = np.array(SimPopDat)
+        simpoparray = np.array(simpopdat)
 
         # plot avg ss var vs period
         fig2 = plt.figure(2)
-        I = np.argsort(SimPopArray[:,0])
-        ax1f2 = fig.add_subplot(111)
+        fig2.suptitle('steady state phenotype variance vs period')
+        ax1f2 = fig2.add_subplot(111)
+        ax1f2.set_xlabel('steady state phenotype variance')
+        ax1f2.set_ylabel('period')
 
-        f2p1 = plt.plot(SimPopArray[I,0], SimPopArray[I,2],
+        indper = np.argsort(simpoparray[:,0])
+        f2p1 = plt.plot(simpoparray[indper,0], simpoparray[indper,2],
                         linestyle='none',marker='o',mec='k',mfc='k')
 
 
@@ -100,12 +104,37 @@ def ploteem(figdir=".",plotend=1,saveplot=1,showplot=0):
 
         # plot avg ss var vs ssmix
         fig3 = plt.figure(3)
-        I = np.argsort(SimPopArray[:,1])
-        f3p1 = plt.plot(SimPopArray[I,1], SimPopArray[I,2],
+        fig3.suptitle('steady state phenotype variance vs continuity')
+        ax1f3 = fig3.add_subplot(111)
+        ax1f3.set_xlabel('steady state phenotype variance')
+        ax1f3.set_ylabel('continuity')
+        indmix = np.argsort(simpoparray[:,1])
+        f3p1 = plt.plot(simpoparray[indmix,1], simpoparray[indmix,2],
                         linestyle='none',marker='o',mec='k',mfc='k')
 
         if saveplot:
             plt.savefig(figdir + '/' + 'ssVarvsCont')
+            if showplot:
+                plt.show()
+        plt.close()
+
+        # plot period vs ssmix vs avg ss var
+        fig4 = plt.figure(4)
+        fig4.suptitle('population mean steady state phenotype variance',
+            fontweight='bold')
+        ax1f4 = fig4.add_subplot(111)
+        fig4.subplots_adjust(top=0.85)
+        ax1f4.set_xlabel('period')
+        ax1f4.set_ylabel('continuity')
+        cm = b2.get_map('BrBG', 'diverging', 11).mpl_colormap
+        sc = plt.scatter(simpoparray[:,0], simpoparray[:,1],
+            c=simpoparray[:,2], vmin=simpoparray[:,2].min(),
+            vmax=simpoparray[:,2].max(), s=45, cmap=cm)
+        cb = plt.colorbar(sc)
+        #cb.set_label('SS phenotype variance')
+
+        if saveplot:
+            plt.savefig(figdir + '/' + 'ContvsPervsssVar')
             if showplot:
                 plt.show()
         plt.close()
@@ -118,7 +147,7 @@ if __name__ == "__main__":
         print "Usage: python %s figdirpath" % __file__
         sys.exit(-1)
 
-    fDir = str(sys.argv[1])
+    fdir = str(sys.argv[1])
     #pEnd = int(sys.argv[2])
     #saPl = int(sys.argv[3])
     #shPl = int(sys.argv[4])
@@ -126,8 +155,8 @@ if __name__ == "__main__":
     # filename = None
     # if len(args) == 7:
     #     filename = str(sys.argv[7])
-    #ploteem(fDir,pEnd,saPl,shPl)
-    ploteem(figdir=fDir)
+    #ploteem(fdir,pEnd,saPl,shPl)
+    ploteem(figdir=fdir)
     sys.exit(0)
 
             # figure(2)
