@@ -105,6 +105,8 @@ if __name__ == "__main__":
         jd.executable        = 'sh'
         jd.arguments         = ['ploteem.sh', figdir, db_url, simid]
         jd.spmd_variation  = 'serial'
+        jd.output = 'out' + tstring + '.txt'
+        jd.error = 'err' + tstring + '.txt'
 
         # create the job from the description
         # above, launch it and add it to the list of jobs

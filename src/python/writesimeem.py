@@ -33,7 +33,7 @@ if __name__ == "__main__":
 #example: python writesimeem.py 2 25 0.9 0.1 1000 10**5/2 test.db
 
     sAmp = int(sys.argv[1])
-    tPer = int(sys.argv[2])
+    tPer = float(sys.argv[2])
     sMix = float(sys.argv[3])
     mRat = float(sys.argv[4])
     pSiz = int(sys.argv[5])

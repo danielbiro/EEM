@@ -144,7 +144,7 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     sAmp = int(sys.argv[1])
-    tPer = int(sys.argv[2])
+    tPer = float(sys.argv[2])
     sMix = float(sys.argv[3])
     mRat = float(sys.argv[4])
     pSiz = int(sys.argv[5])

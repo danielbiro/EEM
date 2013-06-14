@@ -155,6 +155,8 @@ if __name__ == "__main__":
                                             mutrate, popsize, maxtime,
                                             db_url, tstring]
                     jd.spmd_variation  = 'serial'
+                    jd.output = 'out' + tstring + '.txt'
+                    jd.error = 'err' + tstring + '.txt'
 
                     # create the job from the description
                     # above, launch it and add it to the list of jobs
