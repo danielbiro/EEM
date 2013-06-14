@@ -96,16 +96,15 @@ if __name__ == "__main__":
 
 
         jd = saga.job.Description()
-        #jd.queue             = "development"
-        jd.wall_time_limit   = 10
+        jd.project = "eemplot"
+        jd.queue = "free.q"
+        jd.wall_time_limit   = 120
         jd.total_cpu_count   = 1
+        ###jd.total_physical_memory = 20000 #no adapter for SGE
         jd.working_directory = workdir.get_url().path
         jd.executable        = 'sh'
         jd.arguments         = ['ploteem.sh', figdir, db_url, simid]
         jd.spmd_variation  = 'serial'
-        # $ qconf -sql
-        # $ qconf -sq all.q
-        jd.queue = "free.q"
 
         # create the job from the description
         # above, launch it and add it to the list of jobs

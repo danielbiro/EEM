@@ -128,7 +128,8 @@ def ploteem(figdir=".", db_url='sqlite:///:memory:', schemaid='1', plotend=1, sa
         cm = b2.get_map('BrBG', 'diverging', 11).mpl_colormap
         sc = plt.scatter(simpoparray[:,0], simpoparray[:,1],
             c=simpoparray[:,2], vmin=simpoparray[:,2].min(),
-            vmax=simpoparray[:,2].max(), s=45, cmap=cm)
+            vmax=simpoparray[:,2].max(), s=25, marker='s',
+            edgecolors='none', cmap=cm)
         cb = plt.colorbar(sc)
         #cb.set_label('SS phenotype variance')
 
