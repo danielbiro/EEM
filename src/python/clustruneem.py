@@ -54,7 +54,7 @@ if __name__ == "__main__":
         ssmixs = np.arange(minmix,maxmix,0.025)
 
         mutrate = 0.1
-        popsize = 10000
+        popsize = 1000
         maxtime = 10**5
 
         numsim = np.size(amps)*np.size(periods)*np.size(ssmixs)
@@ -125,6 +125,8 @@ if __name__ == "__main__":
         jd.executable        = 'sh'
         jd.arguments         = ['initdb.sh', db_url, tstring, 1]
         jd.spmd_variation  = 'serial'
+        jd.output = 'initdb_out' + tstring + '.txt'
+        jd.error = 'initdb_err' + tstring + '.txt'
 
         # create the job from the description
         # above, launch it and add it to the list of jobs

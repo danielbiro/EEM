@@ -94,7 +94,7 @@ def ploteem(figdir=".", db_url='sqlite:///:memory:', schemaid='1', plotend=1, sa
         indper = np.argsort(simpoparray[:,0])
         f2p1 = plt.plot(simpoparray[indper,0], simpoparray[indper,2],
                         linestyle='none',marker='o',mec='k',mfc='k')
-
+        ax1f2.set_yscale('log')
 
         if saveplot:
             plt.savefig(figdir + '/' + 'ssVarvsPer')
@@ -130,6 +130,7 @@ def ploteem(figdir=".", db_url='sqlite:///:memory:', schemaid='1', plotend=1, sa
             c=simpoparray[:,2], vmin=simpoparray[:,2].min(),
             vmax=simpoparray[:,2].max(), s=25, marker='s',
             edgecolors='none', cmap=cm)
+        ax1f4.set_xscale('log')
         cb = plt.colorbar(sc)
         #cb.set_label('SS phenotype variance')
 
