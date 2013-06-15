@@ -153,9 +153,9 @@ if __name__ == "__main__":
         print " \n*** Backtrace:\n %s" % ex.traceback
         sys.exit(-1)
 
-    except KeyboardInterrupt:
+    #except KeyboardInterrupt:
     # ctrl-c caught: try to cancel our jobs before we exit
         # the program, otherwise we'll end up with lingering jobs.
-        for job in jobs:
-            job.cancel()
-        sys.exit(-1)
+    #    for job in jobs:
+    #        job.cancel()
+    #    sys.exit(-1)
