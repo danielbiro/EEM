@@ -5,9 +5,6 @@ import numpy as np
 #import scipy.stats as sps
 #import sqlite3 as sqlite
 
-from datetime import datetime
-
-
 def normpdf(x, mu, sigma):
     u = (x-mu)/abs(sigma)
     y = (1/(np.sqrt(2*np.pi)*abs(sigma)))*np.exp(-u*u/2)
@@ -27,13 +24,12 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
     #mutrate = .1
     mutmag = [0.05, 0.05]
 
-
     #popsize = 100 # 1000 is base
     k = 1
 
     # stable parameters
     #maxtime = 10**3 # 10**5/2 is base
-    tS = 0.2 # time step
+    tS = 1 # time step # was 0.2
 
     time = np.linspace(1,tS*maxtime,num=maxtime)
 
@@ -41,8 +37,8 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
         # Env = ampsize.*(round(rand(length(time),1)').*2 - 1)
         Env = ampsize*np.round(np.random.uniform(low=-1, high=1,size=maxtime))
     else:
-        Env1 = ampsize*(-1)**(np.round(time/P))
-        Env2 = ampsize*np.cos(time*(np.pi/P))
+        Env1 = ampsize*np.cos(time*(2*np.pi/P))
+        Env2 = ampsize*(-1)**(np.round(2*time/P))
         Env = ssmix*Env1 + (1-ssmix)*Env2
 
         Pop = np.zeros((popsize,3))
@@ -63,12 +59,12 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
         #Population growth
         temp3 = np.nonzero(Pop[:,0] != 0)[0]
         Pop[temp3][:,0] = Pop[temp3][:,0]*\
-        np.exp(\
-          (normpdf(Env[i],Pop[temp3][:,1],Pop[temp3][:,2]))/\
-          (normpdf(0,0,Pop[temp3][:,2]))*\
+        np.exp(
+          (normpdf(Env[i],Pop[temp3][:,1],Pop[temp3][:,2]))/
+          (normpdf(0,0,Pop[temp3][:,2]))*
           (k/(Pop[temp3][:,2]**2+k)))
         Pop[:,0] = Pop[:,0]/np.sum(Pop[:,0])
-        
+
         #Calculate average stdev
         avggen[i] = np.sum(Pop[:,0]*Pop[:,2])
 
@@ -76,7 +72,7 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
         Pop[Pop[:,0]<extinct] = 0
 
         #Mutation
-        if (np.sum(Pop[:,0]!=0) < popsize and	
+        if (np.sum(Pop[:,0]!=0) < popsize and
            np.random.uniform() < mutrate):
             temp = np.nonzero(Pop[:,0]>0)[0]
             newmut = np.random.permutation(np.sum(Pop[:,0]>0))
@@ -97,45 +93,44 @@ def eemsim(ampsize=2, P=25, ssmix=0.9, mutrate=0.1, popsize=1000, maxtime=10**5/
         #define font size
         plt.rc("font", size=20)
         plt.rc("text", usetex=True)
-        # figure(2)
+
+        # figure(1)
         fig1 = plt.figure(1)
         f1p1 = plt.plot(avggen,linestyle='none',marker='o',mec='r',mfc='r')
-        
         if saveplot:
             plt.savefig(figdir + '/avggen')
-
             if showplot:
                 plt.show()
+        plt.close()
 
-        # figure(3)
+        # figure(2)
         fig2 = plt.figure(2)
         I = np.argsort(Pop[:,2])
         f2p1 = plt.stem(Pop[I,2], Pop[I,0], linefmt='b-', markerfmt='bo', basefmt='r-')
-        
         if saveplot:
             plt.savefig('fig/stem')
-
             if showplot:
                 plt.show()
+        plt.close()
 
-        # figure(4)
+        # figure(3)
         fig3 = plt.figure(3)
         f3p1 = plt.plot(Env[1:50],linestyle='none',marker='o',mec='k',mfc='k')
         if saveplot:
             plt.savefig('fig/envshort')
-
             if showplot:
                 plt.show()
+        plt.close()
 
-        # figure(5)
+        # figure(4)
         fig4 = plt.figure(4)
         f4p1 = plt.plot(Env,linestyle='none',marker='o',mec='k',mfc='k')
         if saveplot:
             plt.savefig('fig/envlong')
-
             if showplot:
                 plt.show()
-    
+        plt.close()
+
     # return
     # ============================
     return Pop, avggen
@@ -149,13 +144,13 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     sAmp = int(sys.argv[1])
-    tPer = int(sys.argv[2])
+    tPer = float(sys.argv[2])
     sMix = float(sys.argv[3])
     mRat = float(sys.argv[4])
     pSiz = int(sys.argv[5])
     mTim = int(sys.argv[6])
-   
-    # filename = None 
+
+    # filename = None
     # if len(args) == 7:
     #     filename = str(sys.argv[7])
     eemsim(sAmp, tPer, sMix, mRat, pSiz, mTim)

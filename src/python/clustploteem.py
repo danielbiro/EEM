@@ -96,16 +96,17 @@ if __name__ == "__main__":
 
 
         jd = saga.job.Description()
-        #jd.queue             = "development"
-        jd.wall_time_limit   = 10
+        jd.project = "eemplot"
+        jd.queue = "free.q"
+        jd.wall_time_limit   = 120
         jd.total_cpu_count   = 1
+        ###jd.total_physical_memory = 20000 #no adapter for SGE
         jd.working_directory = workdir.get_url().path
         jd.executable        = 'sh'
         jd.arguments         = ['ploteem.sh', figdir, db_url, simid]
         jd.spmd_variation  = 'serial'
-        # $ qconf -sql
-        # $ qconf -sq all.q
-        jd.queue = "free.q"
+        jd.output = 'out' + tstring + '.txt'
+        jd.error = 'err' + tstring + '.txt'
 
         # create the job from the description
         # above, launch it and add it to the list of jobs
@@ -152,9 +153,9 @@ if __name__ == "__main__":
         print " \n*** Backtrace:\n %s" % ex.traceback
         sys.exit(-1)
 
-    except KeyboardInterrupt:
+    #except KeyboardInterrupt:
     # ctrl-c caught: try to cancel our jobs before we exit
         # the program, otherwise we'll end up with lingering jobs.
-        for job in jobs:
-            job.cancel()
-        sys.exit(-1)
+    #    for job in jobs:
+    #        job.cancel()
+    #    sys.exit(-1)

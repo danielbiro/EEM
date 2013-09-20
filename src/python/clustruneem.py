@@ -23,38 +23,43 @@ if __name__ == "__main__":
         # ========================================
 
         # testing
-        minamp = 1
-        maxamp = 3
-        amps = range(minamp,maxamp)
-
-        minperiod = 3
-        maxperiod = 5
-        periods = range(minperiod,maxperiod)
-
-        minmix = 0.5
-        maxmix = 0.7
-        ssmixs = np.arange(minmix,maxmix,0.1)
-
-        mutrate = 0.1
-        popsize = 100
-        maxtime = 10**3
-
-        # simulation
-        # minamp = 2
+        # minamp = 1
         # maxamp = 3
         # amps = range(minamp,maxamp)
 
-        # minperiod = 2
-        # maxperiod = 31
+        # minperiod = 3
+        # maxperiod = 5
         # periods = range(minperiod,maxperiod)
 
-        # minmix = 0.1
-        # maxmix = 1.0
+        # minmix = 0.5
+        # maxmix = 0.7
         # ssmixs = np.arange(minmix,maxmix,0.1)
 
         # mutrate = 0.1
-        # popsize = 1000
-        # maxtime = 10**5/2
+        # popsize = 100
+        # maxtime = 10**3
+
+        # simulation
+        minamp = 2
+        maxamp = 3
+        amps = range(minamp,maxamp)
+
+        minperiod = 10
+        maxperiod = 10**5
+        #periods = range(minperiod,maxperiod)
+        periods = np.logspace(np.log10(minperiod),np.log10(maxperiod),num=50)
+
+        minmix = 0
+        maxmix = 1.025
+        ssmixs = np.arange(minmix,maxmix,0.025)
+
+        mutrate = 0.1
+        popsize = 1000
+        maxtime = 10**5
+
+        numsim = np.size(amps)*np.size(periods)*np.size(ssmixs)
+
+        print "Number of simulations = %0.0f" % numsim
 
         # Construct database url
         db_server = 'postgresql'
@@ -112,6 +117,7 @@ if __name__ == "__main__":
 
         # run a job to initialize the database tables and schema
         jd = saga.job.Description()
+        jd.project = "initdbeem"
         jd.queue = "free.q"
         jd.wall_time_limit   = 10
         jd.total_cpu_count   = 1
@@ -119,6 +125,8 @@ if __name__ == "__main__":
         jd.executable        = 'sh'
         jd.arguments         = ['initdb.sh', db_url, tstring, 1]
         jd.spmd_variation  = 'serial'
+        jd.output = 'initdb_out' + tstring + '.txt'
+        jd.error = 'initdb_err' + tstring + '.txt'
 
         # create the job from the description
         # above, launch it and add it to the list of jobs
@@ -139,8 +147,9 @@ if __name__ == "__main__":
                 for ssmix in ssmixs:
 
                     jd = saga.job.Description()
+                    jd.project = "eem"
                     jd.queue = "free.q"
-                    jd.wall_time_limit   = 10
+                    jd.wall_time_limit   = 120
                     jd.total_cpu_count   = 1
                     jd.working_directory = workdir.get_url().path
                     jd.executable        = 'sh'
@@ -148,6 +157,8 @@ if __name__ == "__main__":
                                             mutrate, popsize, maxtime,
                                             db_url, tstring]
                     jd.spmd_variation  = 'serial'
+                    jd.output = 'out' + tstring + '.txt'
+                    jd.error = 'err' + tstring + '.txt'
 
                     # create the job from the description
                     # above, launch it and add it to the list of jobs
@@ -164,7 +175,7 @@ if __name__ == "__main__":
                 print ' * Job %s status: %s' % (job.id, jobstate)
                 if jobstate in [saga.job.DONE, saga.job.FAILED]:
                     jobs.remove(job)
-            time.sleep(5)
+            time.sleep(30)
 
         # copy image tiles back to our 'local' directory
         # for image in workdir.list('*.db'):
@@ -175,6 +186,7 @@ if __name__ == "__main__":
         print ' * Copying files back to \n\t%s' % localresultsdirname
         for resultfiles in workdir.list('*'):
             workdir.copy(resultfiles, localresultsdir.get_url())
+        print "Number of simulations = %0.0f" % numsim
 
         # stitch together the final image
         # fullimage = Image.new('RGB', (imgx, imgy), (255, 255, 255))
@@ -195,9 +207,9 @@ if __name__ == "__main__":
         print " \n*** Backtrace:\n %s" % ex.traceback
         sys.exit(-1)
 
-    except KeyboardInterrupt:
-    # ctrl-c caught: try to cancel our jobs before we exit
-        # the program, otherwise we'll end up with lingering jobs.
-        for job in jobs:
-            job.cancel()
-        sys.exit(-1)
+    # except KeyboardInterrupt:
+    # # ctrl-c caught: try to cancel our jobs before we exit
+    #     # the program, otherwise we'll end up with lingering jobs.
+    #     for job in jobs:
+    #         job.cancel()
+    #     sys.exit(-1)
