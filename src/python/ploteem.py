@@ -110,7 +110,8 @@ def ploteem(figdir=".", db_url='sqlite:///:memory:', schemaid='1', plotend=1, sa
         ax1f3.set_ylabel('continuity')
         indmix = np.argsort(simpoparray[:,1])
         f3p1 = plt.plot(simpoparray[indmix,1], simpoparray[indmix,2],
-                        linestyle='none',marker='o',mec='k',mfc='k')
+                        linestyle='-.',marker='o',markersize='5',
+                        mec='k',mfc='k')
 
         if saveplot:
             plt.savefig(figdir + '/' + 'ssVarvsCont')
