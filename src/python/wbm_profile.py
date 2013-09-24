@@ -2,9 +2,7 @@
 
 import cProfile
 import pstats
-
 import wagbergmod as wbm
-
 
 cProfile.run('wbm.SimPop()','wbmstats.prof')
 p = pstats.Stats('wbmstats.prof')
