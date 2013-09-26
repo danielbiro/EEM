@@ -2,7 +2,10 @@ abstract Individuals
 
 type Individual{T} <: Individuals
     network::Matrix{T}
-    state::Vector{T}
+    optstate::Vector{T}
+    develstate::Vector{T}
+    stable::Bool
+    fitness::Float64
 end
 
 typealias GaussMat Individual

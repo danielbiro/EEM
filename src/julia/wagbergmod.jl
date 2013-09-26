@@ -6,6 +6,7 @@ require("constants.jl")
 require("types.jl")
 require("initialization.jl")
 
+
 inds = geninds(G,N,C,INDTYPE)
 pop  = genpop(inds,N,P)
 
