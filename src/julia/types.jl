@@ -8,11 +8,7 @@ type Individual{T} <: Individuals
     fitness::Float64
 end
 
-typealias GaussMat Individual
-typealias MarkovMat Individual
-
 type Population{I <: Individuals}
     individuals::Vector{I}
     connectivity::AbstractGraph
-    #connectivity::GenericIncidenceList{S}
 end
