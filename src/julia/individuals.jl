@@ -1,57 +1,57 @@
-function iterateind(IndMat::Matrix, IntState::Vector, Term=100, tau=10, epsilon=10^-4., a=100)
+function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilon=10^-4., a=100)
 
     # Script to accept a matrix, initial state, iteration maximum, averaging period, error tolerance,
     # and sigmoidal paramter
     # Will output a convergance flag (ConFlag) of 0 for a matrix that did not converge, or 1 for one
     # that did As well as the final state vector of a matrix that did converge
 
-    N = size(IndMat,2)
-    CurState = deepcopy(IntState)
-    ConFlag = false
-    PastState = zeros(N,tau)
-    ConTime = 0
+    N = size(indnet,2)
+    currstate = deepcopy(initstate)
+    convflag = false
+    paststate = zeros(N,tau)
+    convtime = 0
 
     for i=1:tau
-        PastState[:,i] = CurState[:]
+        paststate[:,i] = currstate[:]
         # Initialize the first tau past states to be the initial state for averaging purposes
-        CurState = 2/(1 + exp(-a*IndMat*CurState)) - 1
+        currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
         # Determine the first iterated state
     end
 
-    for i=tau:Term
-        CurState = 2/(1 + exp(-a*IndMat*CurState)) - 1
-        AvgState = mean(PastState, 2)
+    for i=tau:tterm
+        currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+        avgstate = mean(paststate, 2)
 
-        Dist = 0
+        dist = 0
 
         for j=1:tau
-            TempDiff = PastState[:,j]-AvgState[:]
-            Dist = Dist + sum(TempDiff.^2)/(4*N)
-            # Calculate the distance metric based on the past states and the defined distance
-            # metric
+            tempdiff = paststate[:,j]-avgstate[:]
+            dist = dist + sum(tempdiff.^2)/(4*N)
+            # Calculate distance based on the past states
+            # and a given distance metric
         end
 
         for j=1:(tau-1)
-            PastState[:,j+1] = PastState[:,j]
+            paststate[:,j+1] = paststate[:,j]
             # Shift every past state forward one
         end
 
-        PastState[:,tau-1] = CurState[:]
+        paststate[:,tau-1] = currstate[:]
         # Dan: Set the most recent past state to the current state
         # Cameron: Where is this being used?
 
-        if Dist<epsilon
+        if dist<epsilon
         # If at any point the distance metric becomes less than the error tolerance, set the
         # convergence
         # flag to 1 and break out of the loop
-            ConFlag = true
-            ConTime = i
+            convflag = true
+            convtime = i
             break
         end
-        ConTime = i
+        convtime = i
     end
 
-    return ConFlag, CurState, ConTime
+    return convflag, currstate, convtime
 end
 
 function testconvergence(founder::Matrix)
@@ -80,49 +80,39 @@ function geninds(G,N,C,INDTYPE)
             conflag, finstate, initstate=testconvergence(founder)
         end
         #[GaussMat(founder,randn(G)) for i=1:N]
-        inds=[GaussMat(founder, finstate, finstate, true, 1.) for i=1:N]
+        inds=[Individual(founder, finstate, finstate, true, 1.) for i=1:N]
 
     elseif INDTYPE=="markov"
-        inds=[MarkovMat(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))),
+        inds=[Individual(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))),
                    rand(Dirichlet(ones(G))), true, 1.) for i=1:N]
     end
 
     return inds
 end
 
-function matmutate(InitMat::Matrix, RateParam = 0.1, MagParam = 1)
+function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
 
     # Script to mutate nonzero elements of a matrix according to a probability magnitude and rate
     # parameter
-    G = size(InitMat,2)
-    P = find(InitMat)
+    G = size(initnet,2)
+    P = find(initnet)
     # Find the non-zero entries as potential mutation sites
     c = length(P)
     # Determine the connectivity of the matrix by counting number of nonzeros
 
-    MutMat = deepcopy(InitMat)
+    mutmat = deepcopy(initnet)
 
     for i=1:c
         # For each non-zero entry:
-        if  rand() < RateParam/(c*G)
-            # Dan: With probability R/cG^2
-            # Cameron: shouldn't this be c*G rather than c*G**3 since
-            # c was never divided by G in this function?
-            MutMat[P[i]] =  MagParam*randn()
+        if  rand() < rateparam/(c*G)
+            # With probability R/cG^2, note c is really cG
+            mutmat[P[i]] =  magparam*randn()
             # Mutate a non-zero entry by a number chosen from a gaussian
         end
     end
 
-    return MutMat
+    return mutmat
 end
-
-# function update(me::MarkovMat)
-
-# end
-
-# function update(me::GaussMat)
-
-# end
 
 function fitnesseval(me::Individual,sigma=1)
     if me.stable
