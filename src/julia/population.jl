@@ -15,6 +15,6 @@ end
 
 function update(me::AbstractGraph)
 
-    me=me
+    me
 
 end

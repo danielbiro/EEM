@@ -13,7 +13,6 @@ pop  = genpop(inds,N,P)
 for t=1:GENS
     update(pop)
 end
-println("jigga1")
+
 println(pop.individuals)
 println(pop.connectivity)
-println("jigga2")

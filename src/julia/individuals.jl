@@ -144,23 +144,25 @@ function reproduce(me::Individual)
 
 end
 
-function update{T}(me::Vector{GaussMat{T}})
+function update{T}(me::Vector{Individual{T}})
     map(develop,me)
-    newindvect = Individual[]
+    oldinds = deepcopy(me)
 
     N = 1
     while N < length(me)
         z = rand(1:N)
-        if me[z].fitness > rand()
-            tempind = matmutate(me[z].network)
-            (tempconvflag, tempdevelstate, tempconvtime) = iterateind(tempind,me[z].optstate)
+        if oldinds[z].fitness > rand()
+            tempind = matmutate(oldinds[z].network)
+            (tempconvflag, tempdevelstate, tempconvtime) =
+                                    iterateind(tempind,oldinds[z].optstate)
             if tempconvflag == 1
-                push!(newindvect,GaussMat(tempind, deepcopy(me[z].optstate), tempdevelstate, true, 1.))
-                fitnesseval(newindvect[N])
+                me[N].network = tempind
+                me[N].develstate = tempdevelstate
+                me[N].stable = true
+                fitnesseval(me[N])
                 N = N + 1
             end
         end
     end
-    me = newindvect
-    return newindvect
+    me
 end
