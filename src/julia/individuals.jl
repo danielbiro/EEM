@@ -1,4 +1,4 @@
-function iterateind(IndMat::Matrix{T}, IntState::Vector{T}, Term=100, tau=10, epsilon=10^-4., a=100)
+function iterateind(IndMat::Matrix, IntState::Vector, Term=100, tau=10, epsilon=10^-4., a=100)
 
     # Script to accept a matrix, initial state, iteration maximum, averaging period, error tolerance,
     # and sigmoidal paramter
@@ -14,19 +14,19 @@ function iterateind(IndMat::Matrix{T}, IntState::Vector{T}, Term=100, tau=10, ep
     for i=1:tau
         PastState[:,i] = CurState[:]
         # Initialize the first tau past states to be the initial state for averaging purposes
-        CurState = 2/(1 + exp(-a*dot(IndMat, CurState))) - 1
+        CurState = 2/(1 + exp(-a*IndMat*CurState)) - 1
         # Determine the first iterated state
     end
 
     for i=tau:Term
-        CurState = 2/(1 + exp(-a*dot(IndMat, CurState))) - 1
-        AvgState = mean(PastState, axis=1)
+        CurState = 2/(1 + exp(-a*IndMat*CurState)) - 1
+        AvgState = mean(PastState, 2)
 
         Dist = 0
 
         for j=1:tau
             TempDiff = PastState[:,j]-AvgState[:]
-            Dist = Dist + sum(TempDiff)^2/(4*N)
+            Dist = Dist + sum(TempDiff.^2)/(4*N)
             # Calculate the distance metric based on the past states and the defined distance
             # metric
         end
@@ -37,7 +37,8 @@ function iterateind(IndMat::Matrix{T}, IntState::Vector{T}, Term=100, tau=10, ep
         end
 
         PastState[:,tau-1] = CurState[:]
-            # Set the most recent past state to the current state
+        # Dan: Set the most recent past state to the current state
+        # Cameron: Where is this being used?
 
         if Dist<epsilon
         # If at any point the distance metric becomes less than the error tolerance, set the
@@ -47,13 +48,49 @@ function iterateind(IndMat::Matrix{T}, IntState::Vector{T}, Term=100, tau=10, ep
             ConTime = i
             break
         end
+        ConTime = i
     end
 
-    return ConFlag, CurState, i
+    return ConFlag, CurState, ConTime
 end
 
+function testconvergence(founder::Matrix)
+    G = size(founder,2)
+    initstate = rand(0:1,G)*2-1
+    conflag, finstate, convtime = iterateind(founder, initstate)
 
-function matmutate(InitMat, RateParam = 0.1, MagParam = 1)
+    return conflag, finstate, initstate
+end
+
+function geninds(G,N,C,INDTYPE)
+    if INDTYPE=="gaussian"
+        b = 0
+        founder = zeros(Float64,G,G)
+
+        conflag=false
+        finstate=[]
+        initstate=[]
+
+        while conflag!=true
+            for i=1:G^2
+                if rand()<C
+                    founder[i] = randn()
+                end
+            end
+            conflag, finstate, initstate=testconvergence(founder)
+        end
+        #[GaussMat(founder,randn(G)) for i=1:N]
+        inds=[GaussMat(founder, finstate, finstate, true, 1.) for i=1:N]
+
+    elseif INDTYPE=="markov"
+        inds=[MarkovMat(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))),
+                   rand(Dirichlet(ones(G))), true, 1.) for i=1:N]
+    end
+
+    return inds
+end
+
+function matmutate(InitMat::Matrix, RateParam = 0.1, MagParam = 1)
 
     # Script to mutate nonzero elements of a matrix according to a probability magnitude and rate
     # parameter
@@ -67,7 +104,7 @@ function matmutate(InitMat, RateParam = 0.1, MagParam = 1)
 
     for i=1:c
         # For each non-zero entry:
-        if  rand() < RateParam/(c*G**3)
+        if  rand() < RateParam/(c*G)
             # Dan: With probability R/cG^2
             # Cameron: shouldn't this be c*G rather than c*G**3 since
             # c was never divided by G in this function?
@@ -77,14 +114,6 @@ function matmutate(InitMat, RateParam = 0.1, MagParam = 1)
     end
 
     return MutMat
-end
-
-function testconvergence(founder::Matrix{T})
-    G = size(founder,2)
-    initstate = rand(0:1,G)*2-1
-    (conflag, finstate, convtime) = iterateind(founder, initstate)
-
-    return conflag, finstate, intstate
 end
 
 # function update(me::MarkovMat)
@@ -100,14 +129,14 @@ function fitnesseval(me::Individual,sigma=1)
         G = length(me.optstate)
         statediff = me.develstate - me.optstate
         distance = dot(statediff,statediff)/(4*G)
-        me.fitness = exp(-(Dist/sigma))
+        me.fitness = exp(-(distance/sigma))
     else
         me.fitness=0
     end
 end
 
 function develop(me::Individual)
-    (me.stable,me.develstate,convtime) = iterateind(me.network,me.goalstate)
+    (me.stable,me.develstate,convtime) = iterateind(me.network,me.optstate)
     fitnesseval(me)
 end
 
@@ -115,21 +144,23 @@ function reproduce(me::Individual)
 
 end
 
-function update(me::Vector{Individuals})
+function update{T}(me::Vector{GaussMat{T}})
     map(develop,me)
+    newindvect = Individual[]
 
-    N = 0
-    while N < length(me):
-        Z = rand(0:N)
-        if me[Z].fitness > rand()
-            TempInd = matmutate(me[Z].network, RateParam, MagParam)
-            (ConFlagTemp, PopStateTemp, ConTimeTemp) = IterateInd(TempInd,GoalState,Term,tau,epsilon,a)
-            if ConFlagTemp == 1
-                NewPop[N,:,:] = copy.copy(TempInd)
+    N = 1
+    while N < length(me)
+        z = rand(1:N)
+        if me[z].fitness > rand()
+            tempind = matmutate(me[z].network)
+            (tempconvflag, tempdevelstate, tempconvtime) = iterateind(tempind,me[z].optstate)
+            if tempconvflag == 1
+                push!(newindvect,GaussMat(tempind, deepcopy(me[z].optstate), tempdevelstate, true, 1.))
+                fitnesseval(newindvect[N])
                 N = N + 1
             end
         end
     end
-
-    return me
+    me = newindvect
+    return newindvect
 end

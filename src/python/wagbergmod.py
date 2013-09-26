@@ -36,7 +36,7 @@ def IterateInd(IndMat, IntState, Term = 100, tau = 10, epsilon = 10**-4, a = 100
 
         for j in range(tau):
             TempDiff = PastState[:,j]-AvgState[:]
-            Dist = Dist + np.sum(TempDiff)**2/(4*N)
+            Dist = Dist + np.sum(TempDiff**2)/(4*N)
             # Calculate the distance metric based on the past states and the defined distance
             # metric
 
