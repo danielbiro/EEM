@@ -64,14 +64,13 @@ end
 
 function geninds(G,N,C,INDTYPE)
     if INDTYPE=="gaussian"
-        b = 0
-        founder = zeros(Float64,G,G)
-
         conflag=false
+        founder = []
         finstate=[]
         initstate=[]
 
         while conflag!=true
+            founder = zeros(Float64,G,G)
             for i=1:G^2
                 if rand()<C
                     founder[i] = randn()

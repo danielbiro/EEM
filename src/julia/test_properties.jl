@@ -3,6 +3,8 @@ using Graphs
 require("types.jl")
 require("individuals.jl")
 
+# question: what proportion of convergent individuals
+#           has an initial state different from its stable state?
 function testdifffininit(G,C)
     # julia> testdifffininit(10,0.75)
     # Nsame, Ndiff, Ndiff/(Ndiff+Nsame)
@@ -34,3 +36,6 @@ function testdifffininit(G,C)
     end
     return Nsame, Ndiff, Ndiff/(Ndiff+Nsame)
 end
+
+# question: how does proportion of individuals converging
+#           scale with individual connectivity
