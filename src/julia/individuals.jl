@@ -14,12 +14,19 @@ function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilo
     for i=1:tau
         paststate[:,i] = currstate[:]
         # Initialize the first tau past states to be the initial state for averaging purposes
-        currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+        #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+        stateupdate = indnet*currstate
+        currstate[find(x -> x>=0,stateupdate)] = 1
+        currstate[find(x -> x<0,stateupdate)] = -1
+        #println(currstate)
         # Determine the first iterated state
     end
 
     for i=tau:tterm
-        currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+        #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+        stateupdate = indnet*currstate
+        currstate[find(x -> x>=0,stateupdate)] = 1
+        currstate[find(x -> x<0,stateupdate)] = -1
         avgstate = mean(paststate, 2)
 
         dist = 0
@@ -54,13 +61,15 @@ function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilo
     return convflag, currstate, convtime
 end
 
+
 function testconvergence(founder::Matrix)
     G = size(founder,2)
     initstate = rand(0:1,G)*2.-1
     conflag, finstate, convtime = iterateind(founder, initstate)
 
-    return conflag, finstate, initstate
+    return conflag, finstate, initstate, convtime
 end
+
 
 function geninds(G,N,C,INDTYPE)
     if INDTYPE=="gaussian"
@@ -94,6 +103,7 @@ function geninds(G,N,C,INDTYPE)
     return inds
 end
 
+
 function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
 
     # Script to mutate nonzero elements of a matrix according to a probability magnitude and rate
@@ -119,6 +129,7 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
     return mutmat
 end
 
+
 function fitnesseval(me::Individual,sigma=1)
     if me.stable
         G = length(me.optstate)
@@ -130,14 +141,17 @@ function fitnesseval(me::Individual,sigma=1)
     end
 end
 
+
 function develop(me::Individual)
     (me.stable,me.develstate,convtime) = iterateind(me.network,me.initstate)
     fitnesseval(me)
 end
 
+
 function reproduce(me::Individual)
 
 end
+
 
 function update{T}(me::Vector{Individual{T}})
     map(develop,me)

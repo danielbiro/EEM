@@ -7,12 +7,21 @@ testind1 = [0.299269  -1.67306   -1.04407
             -0.132803   1.27519    0.0
             -0.958348   0.729679   0.183351]
 
+# testind2 = [-.5171601684080414  0   0
+#             -.3252679834777976  -1.338027123296406  -.5353476936243659
+#             1.5551844915039323  -.46996721344812914 -.020179822868444778]
+
+# testindinit2 = [-1.0,1.0,1.0]
+# testindstable2 = [1.0,-1.0,-1.0]
+
 #=================================
 #iterateind - convergent state
 testindinit1 = [-1.0,1.0,1.0]
 testindstable1 = [-1.0,1.0,1.0]
 
 outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
+
+print(outconvtime)
 
 @test outconvflag==true
 @test_approx_eq outstate testindstable1
@@ -22,6 +31,9 @@ testindinit2 = [-1.0,-1.0,1.0]
 testindunstable2 = [1.0,-1.0,-1.0]
 
 outconvflag, outstate, outconvtime = iterateind(testind1,testindinit2)
+
+print(outconvtime)
+
 @test outconvflag==false
 @test_approx_eq outstate testindunstable2
 
@@ -53,7 +65,7 @@ individual3 = inds[3]
 
 #=================================
 #matmutate
-mutrate1 = length(find(testind))*size(testind,2)
+mutrate1 = length(find(testind1))*size(testind1,2)
 mutmat = matmutate(testind1,mutrate1,10)
 @test find(testind1)==find(mutmat)
 @test testind1!=mutmat
