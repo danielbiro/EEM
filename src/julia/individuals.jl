@@ -56,7 +56,7 @@ end
 
 function testconvergence(founder::Matrix)
     G = size(founder,2)
-    initstate = rand(0:1,G)*2-1
+    initstate = rand(0:1,G)*2.-1
     conflag, finstate, convtime = iterateind(founder, initstate)
 
     return conflag, finstate, initstate
@@ -79,8 +79,13 @@ function geninds(G,N,C,INDTYPE)
             end
             conflag, finstate, initstate=testconvergence(founder)
         end
-        #[GaussMat(founder,randn(G)) for i=1:N]
-        inds=[Individual(founder, finstate, finstate, true, 1.) for i=1:N]
+
+        # println("Founder initial state: ")
+        # println(initstate)
+        # println("Founder final state: ")
+        # println(finstate)
+        # println()
+        inds=[Individual(founder, initstate, finstate, finstate, true, 1.) for i=1:N]
 
     elseif INDTYPE=="markov"
         inds=[Individual(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))),
@@ -96,16 +101,17 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
     # parameter
     G = size(initnet,2)
     P = find(initnet)
+
     # Find the non-zero entries as potential mutation sites
-    c = length(P)
+    cnum = length(P)
     # Determine the connectivity of the matrix by counting number of nonzeros
 
     mutmat = deepcopy(initnet)
 
-    for i=1:c
+    for i=1:cnum
         # For each non-zero entry:
-        if  rand() < rateparam/(c*G)
-            # With probability R/cG^2, note c is really cG
+        if  rand() < rateparam/(cnum*G)
+            # With probability R/cG^2, note cnum=cG
             mutmat[P[i]] =  magparam*randn()
             # Mutate a non-zero entry by a number chosen from a gaussian
         end
@@ -126,7 +132,7 @@ function fitnesseval(me::Individual,sigma=1)
 end
 
 function develop(me::Individual)
-    (me.stable,me.develstate,convtime) = iterateind(me.network,me.optstate)
+    (me.stable,me.develstate,convtime) = iterateind(me.network,me.initstate)
     fitnesseval(me)
 end
 
@@ -136,15 +142,15 @@ end
 
 function update{T}(me::Vector{Individual{T}})
     map(develop,me)
-    oldinds = deepcopy(me)
 
+    oldinds = deepcopy(me)
     N = 1
     while N < length(me)
         z = rand(1:N)
         if oldinds[z].fitness > rand()
             tempind = matmutate(oldinds[z].network)
             (tempconvflag, tempdevelstate, tempconvtime) =
-                                    iterateind(tempind,oldinds[z].optstate)
+                                    iterateind(tempind,oldinds[z].initstate)
             if tempconvflag == 1
                 me[N].network = tempind
                 me[N].develstate = tempdevelstate

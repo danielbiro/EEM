@@ -221,6 +221,10 @@ def ForwardGen(Population, GoalState, ConnectFlag = 1, MutateFlag = 1, Reproduce
 
             (ConFlagTemp, PopStateTemp, ConTimeTemp) = IterateInd(TempInd,GoalState,Term,tau,epsilon,a)
 
+            # Cameron: should we really enforce this?
+            # this prevents non-convergent individuals from
+            # ever entering the population via mutation
+            # I think it is enough that their fitness is 0
             if ConFlagTemp == 1:
                 NewPop[PopNum,:,:] = copy.copy(TempInd)
                 PopNum = PopNum + 1

@@ -1,6 +1,6 @@
 function genpop(inds,N,P)
 
-    return Population(inds, erdos_renyi_graph(N,P,is_directed=false))
+    return Population(inds, inds[1], erdos_renyi_graph(N,P,is_directed=false))
 
 end
 
