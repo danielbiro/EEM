@@ -4,6 +4,7 @@
 1. Measure individual [modularity][1]
 1. Keep track of population average path length
 1. Implement more effective stability detection (see [here](http://dx.plos.org/10.1371/journal.pone.0034285))
+1. Function to compute perron vector: perron(B)=rref(vcat(hcat(B-eye(size(B,2)), zeros(size(B,2))),ones(size(B,2)+1)'))[1:size(B,2),end]
 
 # completed
 1. Write tests
