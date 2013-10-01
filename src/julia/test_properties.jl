@@ -7,7 +7,8 @@ require("individuals.jl")
 
 # question: what proportion of convergent individuals
 #           has an initial state different from its stable state?
-function testdifffininit(G,C,tests)
+# answer: almost all
+function testdifffininit(G,C,tests,tau=10,tterm=100)
     # julia> testdifffininit(10,0.75)
     # Nsame, Ndiff, Ndiff/(Ndiff+Nsame)
     # (366,9634,0.9634)
@@ -29,7 +30,8 @@ function testdifffininit(G,C,tests)
                     founder[j] = randn()
                 end
             end
-            conflag, finstate, initstate, convtime=testconvergence(founder)
+            conflag, finstate, initstate, convtime =
+                                    testconvergence(founder,tau,tterm)
         end
 
         convtimevect[i]=convtime
@@ -53,8 +55,8 @@ function testdifffininit(G,C,tests)
     convtimehist = hist(convtimevect,20)
     add( p, Histogram(convtimehist...) )
     setattr(p, "yrange", (0,max(convtimehist[2])+5))
-    file(p,"convtimehist.pdf")
-    run(`evince convtimehist.pdf`)
+    file(p,"convtimehist$tau\_$tterm.pdf")
+    run(`evince convtimehist$tau\_$tterm.pdf`)
 
     return Nsame, Ndiff, Ndiff/(Ndiff+Nsame), min(convtimevect),
             max(convtimevect), mean(convtimevect)
@@ -64,7 +66,7 @@ end
 #           scale with individual connectivity
 
 # an inhibitor of a downregulated gene
-# contribute to the upregulation of that gene
+# contributes to the upregulation of that gene
 
 # question: what is the average convergence time
 #           for convergent individuals?
@@ -74,7 +76,7 @@ end
 # question: what is the relationship between
 #           the structure of those individuals that
 #           do and do not converge
-# approach: plot histogram of individuals that do converge
+# approach: plot dendrogram of individuals that do converge
 #           and those that do not
 
 # question: do individuals that converge in the short term

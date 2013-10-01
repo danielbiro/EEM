@@ -1,9 +1,13 @@
-function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilon=10^-4., a=100)
+function iterateind(indnet::Matrix, initstate::Vector,
+                    tau=10, tterm=100,epsilon=10^-4., a=100)
 
-    # Script to accept a matrix, initial state, iteration maximum, averaging period, error tolerance,
+    # Script to accept a matrix, initial state,
+    # iteration maximum, averaging period, error tolerance,
     # and sigmoidal paramter
-    # Will output a convergance flag (ConFlag) of 0 for a matrix that did not converge, or 1 for one
-    # that did As well as the final state vector of a matrix that did converge
+    # Will output a convergance flag (ConFlag) of 0 for
+    # a matrix that did not converge, or 1 for one
+    # that did As well as the final state vector of a
+    # matrix that did converge
 
     N = size(indnet,2)
     currstate = deepcopy(initstate)
@@ -13,7 +17,8 @@ function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilo
 
     for i=1:tau
         paststate[:,i] = currstate[:]
-        # Initialize the first tau past states to be the initial state for averaging purposes
+        # Initialize the first tau past states
+        #to be the initial state for averaging purposes
         #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
         stateupdate = indnet*currstate
         currstate[find(x -> x>=0,stateupdate)] = 1
@@ -48,8 +53,9 @@ function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilo
         # Cameron: Where is this being used?
 
         if dist<epsilon
-        # If at any point the distance metric becomes less than the error tolerance, set the
-        # convergence
+        # If at any point the distance metric
+        # becomes less than the error tolerance,
+        # set the convergence
         # flag to 1 and break out of the loop
             convflag = true
             convtime = i
@@ -62,10 +68,12 @@ function iterateind(indnet::Matrix, initstate::Vector, tterm=100, tau=10, epsilo
 end
 
 
-function testconvergence(founder::Matrix)
+function testconvergence(founder::Matrix,
+                         tau=10, tterm=100, epsilon=10^-4., a=100)
     G = size(founder,2)
     initstate = rand(0:1,G)*2.-1
-    conflag, finstate, convtime = iterateind(founder, initstate)
+    conflag, finstate, convtime = iterateind(founder, initstate,
+                                             tau, tterm, epsilon, a)
 
     return conflag, finstate, initstate, convtime
 end
@@ -93,11 +101,13 @@ function geninds(G,N,C,INDTYPE)
         # println("Founder final state: ")
         # println(finstate)
         # println()
-        inds=[Individual(founder, initstate, finstate, finstate, true, 1.) for i=1:N]
+        inds=[Individual(founder, initstate, finstate, finstate, true, 1.)
+              for i=1:N]
 
     elseif INDTYPE=="markov"
-        inds=[Individual(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))),
-                   rand(Dirichlet(ones(G))), true, 1.) for i=1:N]
+        inds=[Individual(rand(Dirichlet(ones(G)),G),
+              rand(Dirichlet(ones(G))), rand(Dirichlet(ones(G))), true, 1.)
+              for i=1:N]
     end
 
     return inds
@@ -106,14 +116,16 @@ end
 
 function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
 
-    # Script to mutate nonzero elements of a matrix according to a probability magnitude and rate
+    # Script to mutate nonzero elements of a matrix
+    # according to a probability magnitude and rate
     # parameter
     G = size(initnet,2)
     P = find(initnet)
 
     # Find the non-zero entries as potential mutation sites
     cnum = length(P)
-    # Determine the connectivity of the matrix by counting number of nonzeros
+    # Determine the connectivity of the matrix
+    # by counting number of nonzeros
 
     mutmat = deepcopy(initnet)
 
