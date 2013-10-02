@@ -7,6 +7,8 @@ type Individual{T} <: Individuals
     optstate::Vector{T}
     stable::Bool
     fitness::Float64
+    robustness::Float64
+    pathlength::Int64
 end
 
 type Population{I <: Individuals}

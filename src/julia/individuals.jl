@@ -85,6 +85,7 @@ function geninds(G,N,C,INDTYPE)
         founder = []
         finstate=[]
         initstate=[]
+        convtime=0
 
         while conflag!=true
             founder = zeros(Float64,G,G)
@@ -93,7 +94,7 @@ function geninds(G,N,C,INDTYPE)
                     founder[i] = randn()
                 end
             end
-            conflag, finstate, initstate=testconvergence(founder)
+            conflag, finstate, initstate, convtime=testconvergence(founder)
         end
 
         # println("Founder initial state: ")
@@ -101,7 +102,7 @@ function geninds(G,N,C,INDTYPE)
         # println("Founder final state: ")
         # println(finstate)
         # println()
-        inds=[Individual(founder, initstate, finstate, finstate, true, 1.)
+        inds=[Individual(founder, initstate, finstate, finstate, true, 1., 0., convtime)
               for i=1:N]
 
     elseif INDTYPE=="markov"
@@ -114,7 +115,8 @@ function geninds(G,N,C,INDTYPE)
 end
 
 
-function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
+function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
+                   onemutflag=false)
 
     # Script to mutate nonzero elements of a matrix
     # according to a probability magnitude and rate
@@ -129,12 +131,17 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1)
 
     mutmat = deepcopy(initnet)
 
-    for i=1:cnum
-        # For each non-zero entry:
-        if  rand() < rateparam/(cnum*G)
-            # With probability R/cG^2, note cnum=cG
-            mutmat[P[i]] =  magparam*randn()
-            # Mutate a non-zero entry by a number chosen from a gaussian
+    if onemutflag
+        i=rand(1:cnum)
+        mutmat[P[i]] = magparam*randn()
+    else
+        for i=1:cnum
+            # For each non-zero entry:
+            if  rand() < rateparam/(cnum*G)
+                # With probability R/cG^2, note cnum=cG
+                mutmat[P[i]] =  magparam*randn()
+                # Mutate a non-zero entry by a number chosen from a gaussian
+            end
         end
     end
 
@@ -154,8 +161,22 @@ function fitnesseval(me::Individual,sigma=1)
 end
 
 
+function robustness(me::Individual, iters=10)
+    dist = 0.
+
+    for i=1:iters
+        perturbednet = matmutate(me.network,onemutflag=true)
+        (convflag, pertstate, convtime) = iterateind(perturbednet,me.initstate)
+        tempdiff = pertstate - me.initstate
+        dist = dist + sum(tempdiff.^2)/(4*N)
+    end
+
+    me.robustness=dist/iters
+end
+
 function develop(me::Individual)
-    (me.stable,me.develstate,convtime) = iterateind(me.network,me.initstate)
+    (me.stable,me.develstate,me.pathlength) =
+                                     iterateind(me.network,me.initstate)
     fitnesseval(me)
 end
 
@@ -185,6 +206,7 @@ end
 
 function update{T}(me::Vector{Individual{T}})
     map(develop,me)
+    map(robustness,me)
 
     oldinds = deepcopy(me)
     N = 1
@@ -204,6 +226,7 @@ function update{T}(me::Vector{Individual{T}})
                 me[N].network = tempind
                 me[N].develstate = tempdevelstate
                 me[N].stable = true
+                me[N].pathlength = tempconvtime
                 fitnesseval(me[N])
                 N = N + 1
             end
