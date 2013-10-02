@@ -16,3 +16,13 @@ type Population{I <: Individuals}
     founder::I
     connectivity::AbstractGraph
 end
+
+type Measure
+    fitness::Vector{Float64}
+    robustness::Vector{Float64}
+    pathlength::Vector{Float64}
+    minimumdescriptionlength::Vector{Any}
+    hierarchy::Vector{Int64}
+end
+
+typealias Time Int64

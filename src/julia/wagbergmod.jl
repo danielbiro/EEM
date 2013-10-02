@@ -2,19 +2,22 @@ using Graphs
 using Distributions
 #using Debug
 
-require("constants.jl")
-#require("constants_bergsieg2002.jl")
+#require("constants.jl")
+require("constants_bergsieg2002.jl")
 require("types.jl")
 require("individuals.jl")
 require("population.jl")
 require("textprogressbar.jl")
+require("measure.jl")
 
 inds = geninds(G,N,C,INDTYPE)
 pop  = genpop(inds,N,P)
+meas = genmeasure(GENS)
 
 tpb=textprogressbar("running grn evolution: ",[])
 for t=1:GENS
     update(pop)
+    measure(pop,meas,t)
     tpb=textprogressbar(t/GENS*100,tpb)
 end
 textprogressbar(" done.",tpb)

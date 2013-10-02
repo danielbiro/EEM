@@ -4,6 +4,7 @@ using Winston
 
 require("types.jl")
 require("individuals.jl")
+require("textprogressbar.jl")
 
 # question: what proportion of convergent individuals
 #           has an initial state different from its stable state?
@@ -15,6 +16,10 @@ function testdifffininit(G,C,tests,tau=10,tterm=100)
     Ndiff=0
     Nsame=0
     convtimevect = zeros(Int64,tests)
+    robustvect = zeros(Float64,tests)
+
+tpb=textprogressbar("running: ",[])
+
     for i=1:tests
         conflag=false
         diffflag=false
@@ -35,32 +40,48 @@ function testdifffininit(G,C,tests,tau=10,tterm=100)
         end
 
         convtimevect[i]=convtime
+        robustvect[i]=robustness(founder,initstate)
         # println(sum([isapprox(finstate[i],initstate[i],rtol=10^-2.) for i=1:length(finstate)])==3)
         # println(founder)
         # println(finstate)
         # println(initstate)
         #if sum([isapprox(finstate[i],initstate[i],rtol=10^-2.) for i=1:length(finstate)])==G
-        if true
-            Nsame=Nsame+1
-        else
-            Ndiff=Ndiff+1
-            diffflag=true
-        end
+        #     Nsame=Nsame+1
+        # else
+        #     Ndiff=Ndiff+1
+        #     diffflag=true
+        # end
+
+        tpb=textprogressbar(i/tests*100,tpb)
     end
+    textprogressbar(" done.",tpb)
 
-    p = FramedPlot()
-    setattr(p, "title", "distribution")
-    setattr(p, "xlabel", "convergence time")
-    setattr(p, "ylabel", "count")
+    p1 = FramedPlot()
+    setattr(p1, "title", "distribution")
+    setattr(p1, "xlabel", "convergence time")
+    setattr(p1, "ylabel", "count")
     convtimehist = hist(convtimevect,20)
-    add( p, Histogram(convtimehist...) )
-    setattr(p, "yrange", (0,max(convtimehist[2])+5))
-    file(p,"convtimehist$tau\_$tterm.pdf")
-    run(`evince convtimehist$tau\_$tterm.pdf`)
+    add( p1, Histogram(convtimehist...) )
+    setattr(p1, "yrange", (0,max(convtimehist[2])+5))
+    file(p1,"fig/convtimehist2_$tau\_$tterm.pdf")
+    #run(`evince fig/convtimehist2_$tau\_$tterm.pdf`)
 
-    return Nsame, Ndiff, Ndiff/(Ndiff+Nsame), min(convtimevect),
-            max(convtimevect), mean(convtimevect)
+    p2 = FramedPlot()
+    setattr(p2, "title", "distribution")
+    setattr(p2, "xlabel", "mean phenotypic distance")
+    setattr(p2, "ylabel", "count")
+    robusthist = hist(robustvect,20)
+    add( p2, Histogram(robusthist...) )
+    setattr(p2, "yrange", (0,max(robusthist[2])+5))
+    file(p2,"fig/robustvect_$G\_$C\_$tests.pdf")
+    run(`evince fig/robustvect_$G\_$C\_$tests.pdf fig/convtimehist2_$tau\_$tterm.pdf`)
+
+    #Nsame, Ndiff, Ndiff/(Ndiff+Nsame),
+    return min(convtimevect), max(convtimevect), mean(convtimevect),
+           min(robustvect), max(robustvect), mean(robustvect)
 end
+
+println(testdifffininit(10,0.75,1000,10,100))
 
 # question: how does proportion of individuals converging
 #           scale with individual connectivity

@@ -1,71 +1,97 @@
 function iterateind(indnet::Matrix, initstate::Vector,
                     tau=10, tterm=100,epsilon=10^-4., a=100)
 
-    # Script to accept a matrix, initial state,
-    # iteration maximum, averaging period, error tolerance,
-    # and sigmoidal paramter
-    # Will output a convergance flag (ConFlag) of 0 for
-    # a matrix that did not converge, or 1 for one
-    # that did As well as the final state vector of a
-    # matrix that did converge
-
-    N = size(indnet,2)
-    currstate = deepcopy(initstate)
     convflag = false
-    paststate = zeros(N,tau)
+    currstate = deepcopy(initstate)
     convtime = 0
 
-    for i=1:tau
-        paststate[:,i] = currstate[:]
-        # Initialize the first tau past states
-        #to be the initial state for averaging purposes
-        #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+    for i=1:tterm
         stateupdate = indnet*currstate
-        currstate[find(x -> x>=0,stateupdate)] = 1
-        currstate[find(x -> x<0,stateupdate)] = -1
-        #println(currstate)
-        # Determine the first iterated state
-    end
-
-    for i=tau:tterm
-        #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
-        stateupdate = indnet*currstate
-        currstate[find(x -> x>=0,stateupdate)] = 1
-        currstate[find(x -> x<0,stateupdate)] = -1
-        avgstate = mean(paststate, 2)
-
-        dist = 0
-
-        for j=1:tau
-            tempdiff = paststate[:,j]-avgstate[:]
-            dist = dist + sum(tempdiff.^2)/(4*N)
-            # Calculate distance based on the past states
-            # and a given distance metric
-        end
-
-        for j=1:(tau-1)
-            paststate[:,j+1] = paststate[:,j]
-            # Shift every past state forward one
-        end
-
-        paststate[:,tau-1] = currstate[:]
-        # Dan: Set the most recent past state to the current state
-        # Cameron: Where is this being used?
-
-        if dist<epsilon
-        # If at any point the distance metric
-        # becomes less than the error tolerance,
-        # set the convergence
-        # flag to 1 and break out of the loop
-            convflag = true
-            convtime = i
+        stateupdate[find(x -> x>=0,stateupdate)] = 1
+        stateupdate[find(x -> x<0,stateupdate)] = -1
+        if currstate==stateupdate
+            convflag=true
+            currstate=stateupdate
+            convtime=i
             break
+        else
+            currstate=stateupdate
+            convtime = i
         end
-        convtime = i
     end
 
     return convflag, currstate, convtime
 end
+
+
+# function iterateind(indnet::Matrix, initstate::Vector,
+#                     tau=10, tterm=100,epsilon=10^-4., a=100)
+
+#     # Script to accept a matrix, initial state,
+#     # iteration maximum, averaging period, error tolerance,
+#     # and sigmoidal paramter
+#     # Will output a convergance flag (ConFlag) of 0 for
+#     # a matrix that did not converge, or 1 for one
+#     # that did As well as the final state vector of a
+#     # matrix that did converge
+
+#     N = size(indnet,2)
+#     currstate = deepcopy(initstate)
+#     convflag = false
+#     paststate = zeros(N,tau)
+#     convtime = 0
+
+#     for i=1:tau
+#         paststate[:,i] = currstate[:]
+#         # Initialize the first tau past states
+#         #to be the initial state for averaging purposes
+#         #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+#         stateupdate = indnet*currstate
+#         currstate[find(x -> x>=0,stateupdate)] = 1
+#         currstate[find(x -> x<0,stateupdate)] = -1
+#         #println(currstate)
+#         # Determine the first iterated state
+#     end
+
+#     for i=tau:tterm
+#         #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
+#         stateupdate = indnet*currstate
+#         currstate[find(x -> x>=0,stateupdate)] = 1
+#         currstate[find(x -> x<0,stateupdate)] = -1
+#         avgstate = mean(paststate, 2)
+
+#         dist = 0
+
+#         for j=1:tau
+#             tempdiff = paststate[:,j]-avgstate[:]
+#             dist = dist + sum(tempdiff.^2)/(4*N)
+#             # Calculate distance based on the past states
+#             # and a given distance metric
+#         end
+
+#         for j=1:(tau-1)
+#             paststate[:,j+1] = paststate[:,j]
+#             # Shift every past state forward one
+#         end
+
+#         paststate[:,tau-1] = currstate[:]
+#         # Dan: Set the most recent past state to the current state
+#         # Cameron: Where is this being used?
+
+#         if dist<epsilon
+#         # If at any point the distance metric
+#         # becomes less than the error tolerance,
+#         # set the convergence
+#         # flag to 1 and break out of the loop
+#             convflag = true
+#             convtime = i
+#             break
+#         end
+#         convtime = i
+#     end
+
+#     return convflag, currstate, convtime
+# end
 
 
 function testconvergence(founder::Matrix,
@@ -162,16 +188,31 @@ end
 
 
 function robustness(me::Individual, iters=10)
+    G = size(me.network,2)
     dist = 0.
 
     for i=1:iters
         perturbednet = matmutate(me.network,onemutflag=true)
         (convflag, pertstate, convtime) = iterateind(perturbednet,me.initstate)
         tempdiff = pertstate - me.initstate
-        dist = dist + sum(tempdiff.^2)/(4*N)
+        dist = dist + sum(tempdiff.^2)/(4*G)
     end
 
     me.robustness=dist/iters
+end
+
+function robustness(me::Matrix{Float64}, initstate::Vector{Float64}, iters=10)
+    G = size(me,2)
+    dist = 0.
+
+    for i=1:iters
+        perturbednet = matmutate(me,onemutflag=true)
+        (convflag, pertstate, convtime) = iterateind(perturbednet,initstate)
+        tempdiff = pertstate - initstate
+        dist = dist + sum(tempdiff.^2)/(4*G)
+    end
+
+    dist/iters
 end
 
 function develop(me::Individual)
