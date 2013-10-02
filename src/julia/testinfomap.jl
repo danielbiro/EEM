@@ -21,7 +21,7 @@ function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
     run(`mkfifo $npipe`)
     @spawn run(`echo -e $linklist` |> "$npipe")
     #print(readchomp(`cat $npipe`))
-    imm=readlines(`./infomap $npipe . -i link-list -N $imruns --directed -w -0` |> `grep -Po "((?<=Codelengths for $imruns trials: )\[.*\])|(?<=total:          )\[.*\]"`)
+    imm=readlines(`./infomap $npipe . -i link-list -N $imruns --directed -w -0` |> `grep -Po "((?<=Codelengths for $imruns trials: )\[.*\])|(?<=total:\s{10})\[.*\]"`)
     #println(imm)
 
     vcat(eval(parse(imm[2])),
@@ -79,8 +79,8 @@ t1= Table(1,2)
 t1[1,1] = p1
 t1[1,2] = p2
 
-file(t1,"immdlhist_N=$N\_P=$P\_K=$K\_B=$Beta\.pdf")
-run(`evince immdlhist_N=$N\_P=$P\_K=$K\_B=$Beta\.pdf`)
+file(t1,"fig/immdlhist_N=$N\_P=$P\_K=$K\_B=$Beta\.pdf")
+run(`evince fig/immdlhist_N=$N\_P=$P\_K=$K\_B=$Beta\.pdf`)
 
 #-----------------------------
 # save linklist to file for testing

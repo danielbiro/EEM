@@ -21,7 +21,7 @@ testindstable1 = [-1.0,1.0,1.0]
 
 outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
 
-print(outconvtime)
+#print(outconvtime)
 
 @test outconvflag==true
 @test_approx_eq outstate testindstable1
@@ -32,7 +32,7 @@ testindunstable2 = [1.0,-1.0,-1.0]
 
 outconvflag, outstate, outconvtime = iterateind(testind1,testindinit2)
 
-print(outconvtime)
+#print(outconvtime)
 
 @test outconvflag==false
 @test_approx_eq outstate testindunstable2
@@ -40,8 +40,10 @@ print(outconvtime)
 #=================================
 #testconvergence
 conflag=true
+finstate = []
+initstate = []
 while conflag!=false
-    conflag, finstate, initstate = testconvergence(testind1)
+    conflag, finstate, initstate, convtime = testconvergence(testind1)
 end
 @test finstate!=initstate
 

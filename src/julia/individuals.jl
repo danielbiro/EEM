@@ -160,8 +160,26 @@ function develop(me::Individual)
 end
 
 
-function reproduce(me::Individual)
+function reproduce(me::Matrix, you::Matrix)
+# reproduce by row segregation
 
+    G = size(me,2)
+    us = zeros(G,G)
+    P = rand(0:1,G)
+    # Generate a vector of random 0's or 1's
+    # of the same length as me's
+
+    # Segragate rows from input matrices me and you
+    # to generate new offspring
+    for i in find(x->x==1,P)
+        us[i,:] = me[i,:]
+    end
+
+    for i in find(x->x==0,P)
+        us[i,:] = you[i,:]
+    end
+
+    return us
 end
 
 
@@ -174,6 +192,12 @@ function update{T}(me::Vector{Individual{T}})
         z = rand(1:N)
         if oldinds[z].fitness > rand()
             tempind = matmutate(oldinds[z].network)
+
+            r=rand(1:N)
+            if oldinds[r].fitness > rand()
+                tempind = reproduce(tempind,oldinds[r].network)
+            end
+
             (tempconvflag, tempdevelstate, tempconvtime) =
                                     iterateind(tempind,oldinds[z].initstate)
             if tempconvflag == 1
