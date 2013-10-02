@@ -22,6 +22,8 @@ for t=1:GENS
 end
 textprogressbar(" done.",tpb)
 
+save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
+
 println("\nSample Final Individuals from Population:")
 println("===========================================\n")
 println(pop.individuals[1:5])

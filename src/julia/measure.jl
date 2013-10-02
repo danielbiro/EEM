@@ -13,3 +13,7 @@ function measure(pop::Population, m::Measure, t::Time)
     m.robustness[t]=mean(map(x->x.robustness, pop.individuals))
     m.pathlength[t]=mean(map(x->x.pathlength, pop.individuals))
 end
+
+function save(m::Measure, fname::String)
+    f = writedlm(joinpath("data",fname), [m.fitness m. robustness m.pathlength], ',')
+end

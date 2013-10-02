@@ -35,10 +35,10 @@ end
 #     # that did As well as the final state vector of a
 #     # matrix that did converge
 
-#     N = size(indnet,2)
+#     #G = size(indnet,2)
 #     currstate = deepcopy(initstate)
 #     convflag = false
-#     paststate = zeros(N,tau)
+#     paststate = zeros(G,tau)
 #     convtime = 0
 
 #     for i=1:tau
@@ -64,7 +64,7 @@ end
 
 #         for j=1:tau
 #             tempdiff = paststate[:,j]-avgstate[:]
-#             dist = dist + sum(tempdiff.^2)/(4*N)
+#             dist = dist + sum(tempdiff.^2)/(4*G)
 #             # Calculate distance based on the past states
 #             # and a given distance metric
 #         end
@@ -96,7 +96,7 @@ end
 
 function testconvergence(founder::Matrix,
                          tau=10, tterm=100, epsilon=10^-4., a=100)
-    G = size(founder,2)
+    #G = size(founder,2)
     initstate = rand(0:1,G)*2.-1
     conflag, finstate, convtime = iterateind(founder, initstate,
                                              tau, tterm, epsilon, a)
@@ -147,10 +147,11 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
     # Script to mutate nonzero elements of a matrix
     # according to a probability magnitude and rate
     # parameter
-    G = size(initnet,2)
-    P = find(initnet)
+    # G = size(initnet,2)
 
+    P = find(initnet)
     # Find the non-zero entries as potential mutation sites
+
     cnum = length(P)
     # Determine the connectivity of the matrix
     # by counting number of nonzeros
@@ -163,8 +164,8 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
     else
         for i=1:cnum
             # For each non-zero entry:
-            if  rand() < rateparam/(cnum*G)
-                # With probability R/cG^2, note cnum=cG
+            if  rand() < rateparam/cnum
+                # With probability R/cG^2, note cnum=cG^2
                 mutmat[P[i]] =  magparam*randn()
                 # Mutate a non-zero entry by a number chosen from a gaussian
             end
@@ -177,7 +178,7 @@ end
 
 function fitnesseval(me::Individual,sigma=1)
     if me.stable
-        G = length(me.optstate)
+        #G = length(me.optstate)
         statediff = me.develstate - me.optstate
         distance = dot(statediff,statediff)/(4*G)
         me.fitness = exp(-(distance/sigma))
@@ -188,7 +189,7 @@ end
 
 
 function robustness(me::Individual, iters=10)
-    G = size(me.network,2)
+    #G = size(me.network,2)
     dist = 0.
 
     for i=1:iters
@@ -202,7 +203,7 @@ function robustness(me::Individual, iters=10)
 end
 
 function robustness(me::Matrix{Float64}, initstate::Vector{Float64}, iters=10)
-    G = size(me,2)
+    #G = size(me,2)
     dist = 0.
 
     for i=1:iters
@@ -225,7 +226,7 @@ end
 function reproduce(me::Matrix, you::Matrix)
 # reproduce by row segregation
 
-    G = size(me,2)
+    #G = size(me,2)
     us = zeros(G,G)
     P = rand(0:1,G)
     # Generate a vector of random 0's or 1's
@@ -250,8 +251,8 @@ function update{T}(me::Vector{Individual{T}})
     map(robustness,me)
 
     oldinds = deepcopy(me)
-    N = 1
-    while N < length(me)
+    newind = 1
+    while newind < length(me)
         z = rand(1:N)
         if oldinds[z].fitness > rand()
             tempind = matmutate(oldinds[z].network)
@@ -264,12 +265,12 @@ function update{T}(me::Vector{Individual{T}})
             (tempconvflag, tempdevelstate, tempconvtime) =
                                     iterateind(tempind,oldinds[z].initstate)
             if tempconvflag == 1
-                me[N].network = tempind
-                me[N].develstate = tempdevelstate
-                me[N].stable = true
-                me[N].pathlength = tempconvtime
-                fitnesseval(me[N])
-                N = N + 1
+                me[newind].network = tempind
+                me[newind].develstate = tempdevelstate
+                me[newind].stable = true
+                me[newind].pathlength = tempconvtime
+                fitnesseval(me[newind])
+                newind = newind + 1
             end
         end
     end
