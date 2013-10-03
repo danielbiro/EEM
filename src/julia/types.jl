@@ -19,8 +19,12 @@ end
 
 type Measure
     fitness::Vector{Float64}
+    fitnessstd::Vector{Float64}
     robustness::Vector{Float64}
+    robustnessstd::Vector{Float64}
     pathlength::Vector{Float64}
+    pathlengthstd::Vector{Float64}
+    indtypes::Vector{Int64}
     minimumdescriptionlength::Vector{Any}
     hierarchy::Vector{Int64}
 end

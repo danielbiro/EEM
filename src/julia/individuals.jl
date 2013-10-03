@@ -10,12 +10,12 @@ function iterateind(indnet::Matrix, initstate::Vector,
         stateupdate[find(x -> x>=0,stateupdate)] = 1
         stateupdate[find(x -> x<0,stateupdate)] = -1
         if currstate==stateupdate
-            convflag=true
-            currstate=stateupdate
-            convtime=i
+            convflag = true
+            currstate = stateupdate
+            convtime = i
             break
         else
-            currstate=stateupdate
+            currstate = stateupdate
             convtime = i
         end
     end
@@ -96,7 +96,7 @@ end
 
 function testconvergence(founder::Matrix,
                          tau=10, tterm=100, epsilon=10^-4., a=100)
-    #G = size(founder,2)
+
     initstate = rand(0:1,G)*2.-1
     conflag, finstate, convtime = iterateind(founder, initstate,
                                              tau, tterm, epsilon, a)
@@ -105,7 +105,7 @@ function testconvergence(founder::Matrix,
 end
 
 
-function geninds(G,N,C,INDTYPE)
+function geninds()
     if INDTYPE=="gaussian"
         conflag=false
         founder = []
@@ -128,9 +128,10 @@ function geninds(G,N,C,INDTYPE)
         # println("Founder final state: ")
         # println(finstate)
         # println()
-        inds=[Individual(founder, initstate, finstate, finstate, true, 1., 0., convtime)
-              for i=1:N]
-
+         inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), true, 1., 0., deepcopy(convtime)) for i=1:N]
+         inds=convert(Array{Individual{Float64},1},inds)
+        # inds=[Individual(founder, initstate, finstate, finstate, true, 1., 0., convtime)
+        #       for i=1:N]
     elseif INDTYPE=="markov"
         inds=[Individual(rand(Dirichlet(ones(G)),G),
               rand(Dirichlet(ones(G))), rand(Dirichlet(ones(G))), true, 1.)
@@ -147,12 +148,11 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
     # Script to mutate nonzero elements of a matrix
     # according to a probability magnitude and rate
     # parameter
-    # G = size(initnet,2)
 
-    P = find(initnet)
+    nzindx = find(initnet)
     # Find the non-zero entries as potential mutation sites
 
-    cnum = length(P)
+    cnum = length(nzindx)
     # Determine the connectivity of the matrix
     # by counting number of nonzeros
 
@@ -160,13 +160,13 @@ function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
 
     if onemutflag
         i=rand(1:cnum)
-        mutmat[P[i]] = magparam*randn()
+        mutmat[nzindx[i]] = magparam*randn()
     else
         for i=1:cnum
             # For each non-zero entry:
             if  rand() < rateparam/cnum
-                # With probability R/cG^2, note cnum=cG^2
-                mutmat[P[i]] =  magparam*randn()
+                # With probability R/c*G^2, note cnum=cG^2
+                mutmat[nzindx[i]] =  magparam*randn()
                 # Mutate a non-zero entry by a number chosen from a gaussian
             end
         end
@@ -178,9 +178,8 @@ end
 
 function fitnesseval(me::Individual,sigma=1)
     if me.stable
-        #G = length(me.optstate)
         statediff = me.develstate - me.optstate
-        distance = dot(statediff,statediff)/(4*G)
+        distance = sum(statediff.^2)/(4*G)
         me.fitness = exp(-(distance/sigma))
     else
         me.fitness=0
@@ -189,21 +188,21 @@ end
 
 
 function robustness(me::Individual, iters=10)
-    #G = size(me.network,2)
+
     dist = 0.
 
     for i=1:iters
         perturbednet = matmutate(me.network,onemutflag=true)
         (convflag, pertstate, convtime) = iterateind(perturbednet,me.initstate)
         tempdiff = pertstate - me.initstate
-        dist = dist + sum(tempdiff.^2)/(4*G)
+        dist += sum(tempdiff.^2)/(4*G)
     end
 
     me.robustness=dist/iters
 end
 
 function robustness(me::Matrix{Float64}, initstate::Vector{Float64}, iters=10)
-    #G = size(me,2)
+
     dist = 0.
 
     for i=1:iters
@@ -226,19 +225,19 @@ end
 function reproduce(me::Matrix, you::Matrix)
 # reproduce by row segregation
 
-    #G = size(me,2)
+
     us = zeros(G,G)
-    P = rand(0:1,G)
+    reproindxs = rand(0:1,G)
     # Generate a vector of random 0's or 1's
     # of the same length as me's
 
     # Segragate rows from input matrices me and you
     # to generate new offspring
-    for i in find(x->x==1,P)
+    for i in find(x->x==1,reproindxs)
         us[i,:] = me[i,:]
     end
 
-    for i in find(x->x==0,P)
+    for i in find(x->x==0,reproindxs)
         us[i,:] = you[i,:]
     end
 
@@ -255,12 +254,12 @@ function update{T}(me::Vector{Individual{T}})
     while newind < length(me)
         z = rand(1:N)
         if oldinds[z].fitness > rand()
-            tempind = matmutate(oldinds[z].network)
-
             r=rand(1:N)
             if oldinds[r].fitness > rand()
-                tempind = reproduce(tempind,oldinds[r].network)
+                tempind = reproduce(oldinds[z].network,oldinds[r].network)
             end
+
+            tempind = matmutate(tempind)
 
             (tempconvflag, tempdevelstate, tempconvtime) =
                                     iterateind(tempind,oldinds[z].initstate)
@@ -270,7 +269,7 @@ function update{T}(me::Vector{Individual{T}})
                 me[newind].stable = true
                 me[newind].pathlength = tempconvtime
                 fitnesseval(me[newind])
-                newind = newind + 1
+                newind += 1
             end
         end
     end

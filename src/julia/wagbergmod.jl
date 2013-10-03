@@ -10,9 +10,9 @@ require("population.jl")
 require("textprogressbar.jl")
 require("measure.jl")
 
-inds = geninds(G,N,C,INDTYPE)
-pop  = genpop(inds,N,P)
-meas = genmeasure(GENS)
+inds = geninds()
+pop  = genpop(inds)
+meas = genmeasure()
 
 tpb=textprogressbar("running grn evolution: ",[])
 for t=1:GENS
