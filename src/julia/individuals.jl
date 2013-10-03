@@ -11,195 +11,104 @@ function iterateind(me::Individual,
 
         if currstate==stateupdate
             me.stable = true
-            me.develstate = stateupdate
-            me.pathlength = i
+            me.develstate = deepcopy(stateupdate)
+            me.pathlength = deepcopy(i)
             break
         elseif i==tterm
             me.stable = false
-            me.develstate = stateupdate
-            me.pathlength = tterm
-        end
-
-    end
-end
-
-function iterateind(indnet::Matrix, initstate::Vector,
-                    tau=10, tterm=100,epsilon=10^-4., a=100)
-
-    convflag = false
-    currstate = deepcopy(initstate)
-    network = deepcopy(indnet)
-    convtime = 0
-
-    for i=1:tterm
-        stateupdate = network*currstate
-        stateupdate[find(x -> x>=0,stateupdate)] = 1
-        stateupdate[find(x -> x<0,stateupdate)] = -1
-        if currstate==stateupdate
-            convflag = true
-            currstate = stateupdate
-            convtime = i
-            break
-        elseif i==tterm
-            currstate = stateupdate
-            convtime = tterm
+            me.develstate = deepcopy(stateupdate)
+            me.pathlength = deepcopy(tterm)
         end
     end
-
-    return convflag, currstate, convtime
 end
 
-# function iterateind(indnet::Matrix, initstate::Vector,
-#                     tau=10, tterm=100,epsilon=10^-4., a=100)
+function copy(me::Individual)
+    newind = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
+                            false, 0., 0., 100)
 
-#     # Script to accept a matrix, initial state,
-#     # iteration maximum, averaging period, error tolerance,
-#     # and sigmoidal paramter
-#     # Will output a convergance flag (ConFlag) of 0 for
-#     # a matrix that did not converge, or 1 for one
-#     # that did As well as the final state vector of a
-#     # matrix that did converge
+    newind.network = deepcopy(me.network)
+    newind.initstate = deepcopy(me.initstate)
+    newind.develstate = deepcopy(me.develstate)
+    newind.optstate = deepcopy(me.optstate)
+    newind.stable = deepcopy(me.stable)
+    newind.fitness = deepcopy(me.fitness)
+    newind.robustness = deepcopy(me.robustness)
+    newind.pathlength = deepcopy(me.pathlength)
 
-#     #G = size(indnet,2)
-#     currstate = deepcopy(initstate)
-#     convflag = false
-#     paststate = zeros(G,tau)
-#     convtime = 0
-
-#     for i=1:tau
-#         paststate[:,i] = currstate[:]
-#         # Initialize the first tau past states
-#         #to be the initial state for averaging purposes
-#         #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
-#         stateupdate = indnet*currstate
-#         currstate[find(x -> x>=0,stateupdate)] = 1
-#         currstate[find(x -> x<0,stateupdate)] = -1
-#         #println(currstate)
-#         # Determine the first iterated state
-#     end
-
-#     for i=tau:tterm
-#         #currstate = 2/(1 + exp(-a*indnet*currstate)) - 1
-#         stateupdate = indnet*currstate
-#         currstate[find(x -> x>=0,stateupdate)] = 1
-#         currstate[find(x -> x<0,stateupdate)] = -1
-#         avgstate = mean(paststate, 2)
-
-#         dist = 0
-
-#         for j=1:tau
-#             tempdiff = paststate[:,j]-avgstate[:]
-#             dist = dist + sum(tempdiff.^2)/(4*G)
-#             # Calculate distance based on the past states
-#             # and a given distance metric
-#         end
-
-#         for j=1:(tau-1)
-#             paststate[:,j+1] = paststate[:,j]
-#             # Shift every past state forward one
-#         end
-
-#         paststate[:,tau-1] = currstate[:]
-#         # Dan: Set the most recent past state to the current state
-#         # Cameron: Where is this being used?
-
-#         if dist<epsilon
-#         # If at any point the distance metric
-#         # becomes less than the error tolerance,
-#         # set the convergence
-#         # flag to 1 and break out of the loop
-#             convflag = true
-#             convtime = i
-#             break
-#         end
-#         convtime = i
-#     end
-
-#     return convflag, currstate, convtime
-# end
-
-
-function testconvergence(founder::Matrix,
-                         tau=10, tterm=100, epsilon=10^-4., a=100)
-
-    initstate = rand(0:1,G)*2.-1
-    conflag, finstate, convtime = iterateind(founder, initstate,
-                                             tau, tterm, epsilon, a)
-
-    return conflag, finstate, initstate, convtime
+    return newind
 end
-
 
 function geninds()
     if INDTYPE=="gaussian"
-        conflag=false
-        founder = []
-        finstate=[]
-        initstate=[]
-        convtime=0
 
-        while conflag!=true
-            founder = zeros(Float64,G,G)
+        founder = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
+                            false, 0., 0., 100)
+
+        while founder.stable!=true
+            founder.network = zeros(Float64,G,G)
             for i=1:G^2
                 if rand()<C
-                    founder[i] = randn()
+                    founder.network[i] = randn()
                 end
             end
-            conflag, finstate, initstate, convtime=testconvergence(founder)
+            founder.initstate = rand(0:1,G)*2.-1
+            iterateind(founder)
+        end
+        founder.fitness = 1
+        founder.optstate = deepcopy(founder.develstate)
+        #individuals = (Array{Individual{Float64},1})[]
+        individuals = Array(Individual{Float64},N)
+        for i = 1:N
+            individuals[i]= copy(founder)
         end
 
-        # println("Founder initial state: ")
-        # println(initstate)
-        # println("Founder final state: ")
-        # println(finstate)
-        # println()
-         inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), deepcopy(conflag), 1., 0., deepcopy(convtime)) for i=1:N]
-         inds=convert(Array{Individual{Float64},1},inds)
-        # inds=[Individual(founder, initstate, finstate, finstate, true, 1., 0., convtime)
-        #       for i=1:N]
+
+        if pointer(individuals[1].network) == pointer(individuals[2].network)
+            println("problem")
+        end
+         # inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), deepcopy(conflag), 1., 0., deepcopy(convtime)) for i=1:N]
+         # inds=convert(Array{Individual{Float64},1},inds)
+
     elseif INDTYPE=="markov"
-        inds=[Individual(rand(Dirichlet(ones(G)),G),
+        individuals=[Individual(rand(Dirichlet(ones(G)),G),
               rand(Dirichlet(ones(G))), rand(Dirichlet(ones(G))), true, 1.)
               for i=1:N]
     end
 
-    return inds
+    return individuals
 end
 
 
-function matmutate(initnet::Matrix, rateparam = 0.1, magparam = 1;
+function mutate(me::Individual, rateparam = 0.1, magparam = 1;
                    onemutflag=false)
 
     # Script to mutate nonzero elements of a matrix
     # according to a probability magnitude and rate
     # parameter
 
-    nzindx = find(initnet)
     # Find the non-zero entries as potential mutation sites
+    nzindx = find(me.network)
 
-    cnum = length(nzindx)
     # Determine the connectivity of the matrix
     # by counting number of nonzeros
-
-    mutmat = deepcopy(initnet)
+    cnum = length(nzindx)
 
     if onemutflag
         i=rand(1:cnum)
+        mutmat = deepcopy(me.network)
         mutmat[nzindx[i]] = magparam*randn()
+        return mutmat
     else
         for i=1:cnum
             # For each non-zero entry:
+            # With probability R/c*G^2, note cnum=cG^2
             if  rand() < rateparam/cnum
-                # With probability R/c*G^2, note cnum=cG^2
-                mutmat[nzindx[i]] =  magparam*randn()
                 # Mutate a non-zero entry by a number chosen from a gaussian
+                me.network[nzindx[i]] =  magparam*randn()
             end
         end
     end
-
-    return mutmat
 end
-
 
 function fitnesseval(me::Individual,sigma=1)
     if me.stable
@@ -217,27 +126,16 @@ function robustness(me::Individual, iters=10)
     dist = 0.
 
     for i=1:iters
-        perturbednet = matmutate(me.network,onemutflag=true)
-        (convflag, pertstate, convtime) = iterateind(perturbednet,me.initstate)
-        tempdiff = pertstate - me.initstate
+        #perturbednet = mutate(me,onemutflag=true)
+        perturbed = Individual(mutate(me,onemutflag=true),
+                                   me.initstate, zeros(G), zeros(G),
+                                   false, 0., 0., 100)
+        iterateind(perturbed)
+        tempdiff = perturbed.develstate - me.develstate
         dist += sum(tempdiff.^2)/(4*G)
     end
 
     me.robustness=dist/iters
-end
-
-function robustness(me::Matrix{Float64}, initstate::Vector{Float64}, iters=10)
-
-    dist = 0.
-
-    for i=1:iters
-        perturbednet = matmutate(me,onemutflag=true)
-        (convflag, pertstate, convtime) = iterateind(perturbednet,initstate)
-        tempdiff = pertstate - initstate
-        dist = dist + sum(tempdiff.^2)/(4*G)
-    end
-
-    dist/iters
 end
 
 function develop(me::Individual)
@@ -247,11 +145,9 @@ function develop(me::Individual)
 end
 
 
-function reproduce(me::Individual, you::Individual)
+function reproduce(me::Individual, you::Individual, us::Individual)
 # reproduce by row segregation
 
-
-    us = zeros(G,G)
     reproindxs = rand(0:1,G)
     # Generate a vector of random 0's or 1's
     # of the same length as me's
@@ -259,42 +155,58 @@ function reproduce(me::Individual, you::Individual)
     # Segragate rows from input matrices me and you
     # to generate new offspring
     for i in find(x->x==1,reproindxs)
-        us[i,:] = deepcopy(me.network[i,:])
+        us.network[i,:] = deepcopy(me.network[i,:])
     end
 
     for j in find(x->x==0,reproindxs)
-        us[j,:] = deepcopy(you.network[j,:])
+        us.network[j,:] = deepcopy(you.network[j,:])
     end
-
-    return us
 end
 
 
-function update{T}(me::Vector{Individual{T}})
-    map(develop,me)
+function update{T}(mes::Vector{Individual{T}})
+    map(develop,mes)
 
-    oldinds = deepcopy(me)
+    oldinds = deepcopy(mes)
 
     newind = 1
-    while newind <= length(me)
+
+    while newind <= length(mes)
         tempind = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
                             false, 0., 0., 100)
+
         z = rand(1:N)
         r = rand(1:N)
-        tempind.network = reproduce(oldinds[z],oldinds[r])
-        tempind.network = matmutate(tempind.network)
+        reproduce(oldinds[z],oldinds[r],tempind)
+        mutate(tempind)
+
         tempind.initstate = deepcopy(oldinds[z].initstate)
         tempind.optstate = deepcopy(oldinds[z].optstate)
+
         iterateind(tempind)
         if tempind.stable
             fitnesseval(tempind)
-            println(tempind.fitness)
             if tempind.fitness >= rand()
-                me[newind] = deepcopy(tempind)
-                robustness(me[newind])
+                mes[newind] = deepcopy(tempind)
+                robustness(mes[newind])
                 newind += 1
             end
         end
+
     end
-    me
+
+    #println(length(unique(map(x->x.network,mes))))
+
+    if pointer(mes[1].network)==pointer(mes[2].network)
+        println("problem")
+    end
+    if pointer(mes[1].initstate)==pointer(mes[2].initstate)
+        println("problem")
+    end
+    if pointer(mes[1].develstate)==pointer(mes[2].develstate)
+        println("problem")
+    end
+    if pointer(mes[1].optstate)==pointer(mes[2].optstate)
+        println("problem")
+    end
 end

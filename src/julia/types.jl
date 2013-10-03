@@ -25,6 +25,9 @@ type Measure
     pathlength::Vector{Float64}
     pathlengthstd::Vector{Float64}
     indtypes::Vector{Int64}
+    inittypes::Vector{Int64}
+    develtypes::Vector{Int64}
+    opttypes::Vector{Int64}
     minimumdescriptionlength::Vector{Any}
     hierarchy::Vector{Int64}
 end
