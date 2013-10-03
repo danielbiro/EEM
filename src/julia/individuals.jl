@@ -1,12 +1,38 @@
+function iterateind(me::Individual,
+                    tau=10, tterm=100,epsilon=10^-4., a=100)
+
+    currstate = deepcopy(me.initstate)
+    network = deepcopy(me.network)
+
+    for i=1:tterm
+        stateupdate = network*currstate
+        stateupdate[find(x -> x>=0,stateupdate)] = 1
+        stateupdate[find(x -> x<0,stateupdate)] = -1
+
+        if currstate==stateupdate
+            me.stable = true
+            me.develstate = stateupdate
+            me.pathlength = i
+            break
+        elseif i==tterm
+            me.stable = false
+            me.develstate = stateupdate
+            me.pathlength = tterm
+        end
+
+    end
+end
+
 function iterateind(indnet::Matrix, initstate::Vector,
                     tau=10, tterm=100,epsilon=10^-4., a=100)
 
     convflag = false
     currstate = deepcopy(initstate)
+    network = deepcopy(indnet)
     convtime = 0
 
     for i=1:tterm
-        stateupdate = indnet*currstate
+        stateupdate = network*currstate
         stateupdate[find(x -> x>=0,stateupdate)] = 1
         stateupdate[find(x -> x<0,stateupdate)] = -1
         if currstate==stateupdate
@@ -14,15 +40,14 @@ function iterateind(indnet::Matrix, initstate::Vector,
             currstate = stateupdate
             convtime = i
             break
-        else
+        elseif i==tterm
             currstate = stateupdate
-            convtime = i
+            convtime = tterm
         end
     end
 
     return convflag, currstate, convtime
 end
-
 
 # function iterateind(indnet::Matrix, initstate::Vector,
 #                     tau=10, tterm=100,epsilon=10^-4., a=100)
@@ -128,7 +153,7 @@ function geninds()
         # println("Founder final state: ")
         # println(finstate)
         # println()
-         inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), true, 1., 0., deepcopy(convtime)) for i=1:N]
+         inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), deepcopy(conflag), 1., 0., deepcopy(convtime)) for i=1:N]
          inds=convert(Array{Individual{Float64},1},inds)
         # inds=[Individual(founder, initstate, finstate, finstate, true, 1., 0., convtime)
         #       for i=1:N]
@@ -216,13 +241,13 @@ function robustness(me::Matrix{Float64}, initstate::Vector{Float64}, iters=10)
 end
 
 function develop(me::Individual)
-    (me.stable,me.develstate,me.pathlength) =
-                                     iterateind(me.network,me.initstate)
+    iterateind(me)
     fitnesseval(me)
+    robustness(me)
 end
 
 
-function reproduce(me::Matrix, you::Matrix)
+function reproduce(me::Individual, you::Individual)
 # reproduce by row segregation
 
 
@@ -234,11 +259,11 @@ function reproduce(me::Matrix, you::Matrix)
     # Segragate rows from input matrices me and you
     # to generate new offspring
     for i in find(x->x==1,reproindxs)
-        us[i,:] = me[i,:]
+        us[i,:] = deepcopy(me.network[i,:])
     end
 
-    for i in find(x->x==0,reproindxs)
-        us[i,:] = you[i,:]
+    for j in find(x->x==0,reproindxs)
+        us[j,:] = deepcopy(you.network[j,:])
     end
 
     return us
@@ -247,28 +272,26 @@ end
 
 function update{T}(me::Vector{Individual{T}})
     map(develop,me)
-    map(robustness,me)
 
     oldinds = deepcopy(me)
+
     newind = 1
-    while newind < length(me)
+    while newind <= length(me)
+        tempind = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
+                            false, 0., 0., 100)
         z = rand(1:N)
-        if oldinds[z].fitness > rand()
-            r=rand(1:N)
-            if oldinds[r].fitness > rand()
-                tempind = reproduce(oldinds[z].network,oldinds[r].network)
-            end
-
-            tempind = matmutate(tempind)
-
-            (tempconvflag, tempdevelstate, tempconvtime) =
-                                    iterateind(tempind,oldinds[z].initstate)
-            if tempconvflag == 1
-                me[newind].network = tempind
-                me[newind].develstate = tempdevelstate
-                me[newind].stable = true
-                me[newind].pathlength = tempconvtime
-                fitnesseval(me[newind])
+        r = rand(1:N)
+        tempind.network = reproduce(oldinds[z],oldinds[r])
+        tempind.network = matmutate(tempind.network)
+        tempind.initstate = deepcopy(oldinds[z].initstate)
+        tempind.optstate = deepcopy(oldinds[z].optstate)
+        iterateind(tempind)
+        if tempind.stable
+            fitnesseval(tempind)
+            println(tempind.fitness)
+            if tempind.fitness >= rand()
+                me[newind] = deepcopy(tempind)
+                robustness(me[newind])
                 newind += 1
             end
         end
