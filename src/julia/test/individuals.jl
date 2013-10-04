@@ -1,12 +1,11 @@
 using Base.Test
-using Debug
+#using Debug
 
 require("types.jl")
+require("constants.jl")
 require("individuals.jl")
 
-const G = 3
-newind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G), zeros(Int64,G),
-                    false, 0., 0., 100)
+newind = Individual()
 
 newind.network = [0.299269  -1.67306   -1.04407
                  -0.132803   1.27519    0.0
@@ -22,11 +21,11 @@ testindstable1 = [-1.0,1.0,1.0]
 
 #outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
 
-# iterateind(newind)
+iterateind(newind)
 
 # #print(outconvtime)
-# @test newind.stable==true
-# @test_approx_eq newind.develstate testindstable1
+@test newind.stable==true
+@test_approx_eq newind.develstate testindstable1
 
 # println(newind)
 # fitnesseval(newind)
@@ -34,25 +33,19 @@ testindstable1 = [-1.0,1.0,1.0]
 # robustness(newind)
 # println(newind)
 
-newind.network = [-.5171601684080414  0   0
-                  -.3252679834777976  -1.338027123296406  -.5353476936243659
-                  1.5551844915039323  -.46996721344812914 -.020179822868444778]
+newind.network = [ 0.0494486   0.0        0.0
+                  -0.821331    0.0        0.829691
+                  -0.674853   -0.0917805  0.0]
 
-newind.initstate = [-1.0,1.0,1.0]
+newind.initstate = [1,1,1]
 
 iterateind(newind)
 
-testindinit2 = [-1.0,1.0,1.0]
-testindstable2 = [1.0,-1.0,-1.0]
+testindinit2 = [1,1,1]
+testindstable2 = [1,-1,-1]
 
+@test newind.stable==true
 @test_approx_eq newind.develstate testindstable2
-
-fitnesseval(newind)
-robustness(newind)
-println(newind)
-
-#@test outconvflag==true
-#@test_approx_eq outstate testindstable1
 
 # #iterateind - nonconvergent state
 # testindinit2 = [-1.0,-1.0,1.0]

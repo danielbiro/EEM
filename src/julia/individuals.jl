@@ -18,12 +18,14 @@ end
 # methods
 # ---------------------------
 
-function iterateind(me::Individual,
-                           qtau=10, tterm=100,epsilon=10^-4., a=100)
-    currstate = copy(me.initstate)
-    #network = deepcopy(me.network)
+function iterateind(me::Individual)
+# iterate individuals from their initial state to
+# their developmental state and store the results
+# in the Individual object
 
-    for i=1:tterm
+    currstate = copy(me.initstate)
+
+    for i=1:MAXCONV
         stateupdate = me.network*currstate
         stateupdate[find(x -> x>=0,stateupdate)] = 1
         stateupdate[find(x -> x<0,stateupdate)] = -1
@@ -34,17 +36,34 @@ function iterateind(me::Individual,
             me.develstate = copy(stateupdate)
             me.pathlength = copy(i)
             break
-        elseif i==tterm
+        elseif i==MAXCONV
             me.stable = false
             me.develstate = copy(stateupdate)
-            me.pathlength = copy(tterm)
+            me.pathlength = copy(MAXCONV)
         end
 
         currstate = copy(stateupdate)
     end
 end
 
+function fitnesseval(me::Individual)
+# measure fitness according to the distance
+# between the developmental state determined
+# by running iterateind(me) and the optimum
+# state
+
+    if me.stable
+        statediff = me.develstate - me.optstate
+        distance = sum(statediff.^2)/(4*G)
+        me.fitness = exp(-(distance/SELSTR))
+    else
+        me.fitness=0
+    end
+end
+
 function randstableind()
+# generate a random Individual that is
+# developmentally stable
 
     randind = Individual()
 
@@ -63,29 +82,23 @@ function randstableind()
 end
 
 function genfounder()
+# generate a founding individual whose
+# developmental state is equivalent to
+# its optimal state and thereby determines
+# the optimal state for the population
+
     founder = randstableind()
     founder.fitness = 1
     founder.optstate = copy(founder.develstate)
+
+    return founder
 end
 
-function geninds()
-    founder = genfounder()
-
-    individuals = Array(Individual{Float64},N)
-    for i = 1:N
-        individuals[i]= deepcopy(founder)
-    end
-
-    return individuals
-end
-
-
-function mutate(me::Individual, rateparam = 0.1, magparam = 1;
-                   onemutflag=false)
-
-    # Script to mutate nonzero elements of a matrix
-    # according to a probability magnitude and rate
-    # parameter
+function mutate(me::Individual; onemutflag=false)
+# mutate nonzero elements of an individuals
+# network according to a rate parameter normalized
+# by the size of the nonzero entries in an
+# individual network
 
     # Find the non-zero entries as potential mutation sites
     nzindx = find(me.network)
@@ -94,50 +107,50 @@ function mutate(me::Individual, rateparam = 0.1, magparam = 1;
     # by counting number of nonzeros
     cnum = length(nzindx)
 
-    if onemutflag
-        i=rand(1:cnum)
-        mutmat = copy(me.network)
-        mutmat[nzindx[i]] = magparam*randn()
-        return mutmat
-    else
-        for i=1:cnum
-            # For each non-zero entry:
-            # With probability R/c*G^2, note cnum=cG^2
-            if  rand() < rateparam/cnum
-                # Mutate a non-zero entry by a number chosen from a gaussian
-                me.network[nzindx[i]] =  magparam*randn()
-            end
+    for i=1:cnum
+        # For each non-zero entry:
+        # With probability R/c*G^2, note cnum=cG^2
+        if  rand() < MUTRATE/cnum
+            # Mutate a non-zero entry by a number chosen from a gaussian
+            me.network[nzindx[i]] =  MUTMAG*randn()
         end
     end
+
 end
 
-function fitnesseval(me::Individual,sigma=1)
-    if me.stable
-        statediff = me.develstate - me.optstate
-        distance = sum(statediff.^2)/(4*G)
-        me.fitness = exp(-(distance/sigma))
-    else
-        me.fitness=0
-    end
+function onemut(me::Individual)
+# perform a one-site mutation of a given
+# individual's network
+
+    nzindx = find(me.network)
+    cnum = length(nzindx)
+    i=rand(1:cnum)
+    mutmat = copy(me.network)
+    mutmat[nzindx[i]] = MUTMAG*randn()
+
+    return mutmat
 end
 
-
-function robustness(me::Individual, iters=10)
+function robustness(me::Individual)
+# measure sensitivity to mutations
+# of the developmental state
 
     dist = 0.
 
-    for i=1:iters
-        #perturbednet = mutate(me,onemutflag=true)
-        perturbed = Individual(mutate(me,onemutflag=true), me.initstate)
+    for i=1:ROBIT
+        perturbed = Individual(onemut(me), me.initstate)
         iterateind(perturbed)
         tempdiff = perturbed.develstate - me.develstate
         dist += sum(tempdiff.^2)/(4*G)
     end
 
-    me.robustness=dist/iters
+    me.robustness=dist/ROBIT
 end
 
 function develop(me::Individual)
+# run the developmental process
+# and update fitness and robustness measures
+
     iterateind(me)
     fitnesseval(me)
     robustness(me)
@@ -145,14 +158,10 @@ end
 
 
 function reproduce(me::Individual, you::Individual, us::Individual)
-# reproduce by row segregation
+# sexual reproduction via independent row segregation
 
     reproindxs = rand(0:1,G)
-    # Generate a vector of random 0's or 1's
-    # of the same length as me's
 
-    # Segragate rows from input matrices me and you
-    # to generate new offspring
     for i in find(x->x==1,reproindxs)
         us.network[i,:] = copy(me.network[i,:])
     end
@@ -164,6 +173,8 @@ end
 
 
 function update{T}(mes::Vector{Individual{T}})
+# update the state of a vector of individuals
+
     map(develop,mes)
 
     oldinds = deepcopy(mes)
@@ -190,21 +201,5 @@ function update{T}(mes::Vector{Individual{T}})
                 newind += 1
             end
         end
-
-    end
-
-    #println(length(unique(map(x->x.network,mes))))
-
-    if pointer(mes[1].network)==pointer(mes[2].network)
-        println("problem")
-    end
-    if pointer(mes[1].initstate)==pointer(mes[2].initstate)
-        println("problem")
-    end
-    if pointer(mes[1].develstate)==pointer(mes[2].develstate)
-        println("problem")
-    end
-    if pointer(mes[1].optstate)==pointer(mes[2].optstate)
-        println("problem")
     end
 end
