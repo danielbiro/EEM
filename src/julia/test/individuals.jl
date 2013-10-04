@@ -1,4 +1,5 @@
 using Base.Test
+using Debug
 
 require("types.jl")
 require("individuals.jl")
@@ -21,17 +22,17 @@ testindstable1 = [-1.0,1.0,1.0]
 
 #outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
 
-iterateind(newind)
+# iterateind(newind)
 
-#print(outconvtime)
-@test newind.stable==true
-@test_approx_eq newind.develstate testindstable1
+# #print(outconvtime)
+# @test newind.stable==true
+# @test_approx_eq newind.develstate testindstable1
 
-println(newind)
-fitnesseval(newind)
-println(newind)
-robustness(newind)
-println(newind)
+# println(newind)
+# fitnesseval(newind)
+# println(newind)
+# robustness(newind)
+# println(newind)
 
 newind.network = [-.5171601684080414  0   0
                   -.3252679834777976  -1.338027123296406  -.5353476936243659

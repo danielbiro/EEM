@@ -1,6 +1,5 @@
-@debug function iterateind(me::Individual,
-                    tau=10, tterm=100,epsilon=10^-4., a=100)
-    @bp
+function iterateind(me::Individual,
+                           qtau=10, tterm=100,epsilon=10^-4., a=100)
     currstate = deepcopy(me.initstate)
     network = deepcopy(me.network)
 
@@ -8,6 +7,7 @@
         stateupdate = network*currstate
         stateupdate[find(x -> x>=0,stateupdate)] = 1
         stateupdate[find(x -> x<0,stateupdate)] = -1
+        stateupdate = convert(Vector{Int64},stateupdate)
 
         if currstate==stateupdate
             me.stable = true
@@ -19,6 +19,8 @@
             me.develstate = deepcopy(stateupdate)
             me.pathlength = deepcopy(tterm)
         end
+
+        currstate = deepcopy(stateupdate)
     end
 end
 
@@ -54,20 +56,14 @@ function geninds()
             founder.initstate = rand(0:1,G)*2.-1
             iterateind(founder)
         end
+
         founder.fitness = 1
         founder.optstate = deepcopy(founder.develstate)
-        #individuals = (Array{Individual{Float64},1})[]
+
         individuals = Array(Individual{Float64},N)
         for i = 1:N
             individuals[i]= copy(founder)
         end
-
-
-        if pointer(individuals[1].network) == pointer(individuals[2].network)
-            println("problem")
-        end
-         # inds=[Individual(deepcopy(founder), deepcopy(initstate), deepcopy(finstate), deepcopy(finstate), deepcopy(conflag), 1., 0., deepcopy(convtime)) for i=1:N]
-         # inds=convert(Array{Individual{Float64},1},inds)
 
     elseif INDTYPE=="markov"
         individuals=[Individual(rand(Dirichlet(ones(G)),G),
