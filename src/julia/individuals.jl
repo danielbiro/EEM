@@ -1,6 +1,6 @@
-function iterateind(me::Individual,
+@debug function iterateind(me::Individual,
                     tau=10, tterm=100,epsilon=10^-4., a=100)
-
+    @bp
     currstate = deepcopy(me.initstate)
     network = deepcopy(me.network)
 
@@ -23,8 +23,8 @@ function iterateind(me::Individual,
 end
 
 function copy(me::Individual)
-    newind = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
-                            false, 0., 0., 100)
+    newind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
+                        zeros(Int64,G), false, 0., 0., 100)
 
     newind.network = deepcopy(me.network)
     newind.initstate = deepcopy(me.initstate)
@@ -41,8 +41,8 @@ end
 function geninds()
     if INDTYPE=="gaussian"
 
-        founder = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
-                            false, 0., 0., 100)
+        founder = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
+                             zeros(Int64,G), false, 0., 0., 100)
 
         while founder.stable!=true
             founder.network = zeros(Float64,G,G)
@@ -127,9 +127,9 @@ function robustness(me::Individual, iters=10)
 
     for i=1:iters
         #perturbednet = mutate(me,onemutflag=true)
-        perturbed = Individual(mutate(me,onemutflag=true),
-                                   me.initstate, zeros(G), zeros(G),
-                                   false, 0., 0., 100)
+        perturbed = Individual(mutate(me,onemutflag=true), me.initstate,
+                               zeros(Int64,G), zeros(Int64,G), false,
+                               0., 0., 100)
         iterateind(perturbed)
         tempdiff = perturbed.develstate - me.develstate
         dist += sum(tempdiff.^2)/(4*G)
@@ -172,8 +172,8 @@ function update{T}(mes::Vector{Individual{T}})
     newind = 1
 
     while newind <= length(mes)
-        tempind = Individual(zeros(G,G), zeros(G), zeros(G), zeros(G),
-                            false, 0., 0., 100)
+        tempind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
+                             zeros(Int64,G), false, 0., 0., 100)
 
         z = rand(1:N)
         r = rand(1:N)

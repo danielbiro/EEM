@@ -2,9 +2,9 @@ abstract Individuals
 
 type Individual{T} <: Individuals
     network::Matrix{T}
-    initstate::Vector{T}
-    develstate::Vector{T}
-    optstate::Vector{T}
+    initstate::Vector{Int64}
+    develstate::Vector{Int64}
+    optstate::Vector{Int64}
     stable::Bool
     fitness::Float64
     robustness::Float64

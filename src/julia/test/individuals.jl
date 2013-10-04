@@ -3,98 +3,125 @@ using Base.Test
 require("types.jl")
 require("individuals.jl")
 
-testind1 = [0.299269  -1.67306   -1.04407
-            -0.132803   1.27519    0.0
-            -0.958348   0.729679   0.183351]
+const G = 3
+newind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G), zeros(Int64,G),
+                    false, 0., 0., 100)
 
-# testind2 = [-.5171601684080414  0   0
-#             -.3252679834777976  -1.338027123296406  -.5353476936243659
-#             1.5551844915039323  -.46996721344812914 -.020179822868444778]
-
-# testindinit2 = [-1.0,1.0,1.0]
-# testindstable2 = [1.0,-1.0,-1.0]
+newind.network = [0.299269  -1.67306   -1.04407
+                 -0.132803   1.27519    0.0
+                 -0.958348   0.729679   0.183351]
 
 #=================================
 #iterateind - convergent state
+newind.initstate = [-1.0,1.0,1.0]
+newind.optstate = [-1.0,-1.0,1.0]
+
 testindinit1 = [-1.0,1.0,1.0]
 testindstable1 = [-1.0,1.0,1.0]
 
-outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
+#outconvflag, outstate, outconvtime = iterateind(testind1,testindinit1)
+
+iterateind(newind)
 
 #print(outconvtime)
+@test newind.stable==true
+@test_approx_eq newind.develstate testindstable1
 
-@test outconvflag==true
-@test_approx_eq outstate testindstable1
+println(newind)
+fitnesseval(newind)
+println(newind)
+robustness(newind)
+println(newind)
 
-#iterateind - nonconvergent state
-testindinit2 = [-1.0,-1.0,1.0]
-testindunstable2 = [1.0,-1.0,-1.0]
+newind.network = [-.5171601684080414  0   0
+                  -.3252679834777976  -1.338027123296406  -.5353476936243659
+                  1.5551844915039323  -.46996721344812914 -.020179822868444778]
 
-outconvflag, outstate, outconvtime = iterateind(testind1,testindinit2)
+newind.initstate = [-1.0,1.0,1.0]
 
-#print(outconvtime)
+iterateind(newind)
 
-@test outconvflag==false
-@test_approx_eq outstate testindunstable2
+testindinit2 = [-1.0,1.0,1.0]
+testindstable2 = [1.0,-1.0,-1.0]
 
-#=================================
-#testconvergence
-conflag=true
-finstate = []
-initstate = []
-while conflag!=false
-    conflag, finstate, initstate, convtime = testconvergence(testind1)
-end
-@test finstate!=initstate
+@test_approx_eq newind.develstate testindstable2
 
-#=================================
-#geninds
-inds = geninds(3,5,0.75,"gaussian")
+fitnesseval(newind)
+robustness(newind)
+println(newind)
 
-@test length(inds)==5
+#@test outconvflag==true
+#@test_approx_eq outstate testindstable1
 
-individual1 = inds[1]
-individual3 = inds[3]
+# #iterateind - nonconvergent state
+# testindinit2 = [-1.0,-1.0,1.0]
+# testindunstable2 = [1.0,-1.0,-1.0]
 
-@test size(individual1.network,2) == 3
-@test size(individual3.network,2) == 3
-@test individual1.network == individual3.network
-@test individual1.initstate == individual3.initstate
-@test individual1.develstate == individual3.develstate
-@test individual1.optstate == individual3.optstate
-@test individual1.stable == individual3.stable
-@test individual1.fitness == individual3.fitness
+# outconvflag, outstate, outconvtime = iterateind(testind1,testindinit2)
 
-#=================================
-#matmutate
-mutrate1 = length(find(testind1))*size(testind1,2)
-mutmat = matmutate(testind1,mutrate1,10)
-@test find(testind1)==find(mutmat)
-@test testind1!=mutmat
+# #print(outconvtime)
 
-mutrate2 = 0
-mutmat = matmutate(testind1,mutrate2,10)
-@test find(testind1)==find(mutmat)
-@test testind1==mutmat
+# @test outconvflag==false
+# @test_approx_eq outstate testindunstable2
 
-#=================================
-#fitnesseval
-@test fitnesseval(individual1)==individual1.fitness
-@test_approx_eq fitnesseval(individual1,100) 1
-individual1.stable=false
-@test fitnesseval(individual1)==0
-individual1.stable=true
+# #=================================
+# #testconvergence
+# conflag=true
+# finstate = []
+# initstate = []
+# while conflag!=false
+#     conflag, finstate, initstate, convtime = testconvergence(testind1)
+# end
+# @test finstate!=initstate
 
-#=================================
-#update - no connectivity change
-oldinds = deepcopy(inds)
+# #=================================
+# #geninds
+# inds = geninds(3,5,0.75,"gaussian")
 
-for i=1:10
-    update(inds)
-end
+# @test length(inds)==5
 
-for i=1:length(inds)
-    for j=1:length(inds)
-        @test find(inds[i].network)==find(oldinds[j].network)
-    end
-end
+# individual1 = inds[1]
+# individual3 = inds[3]
+
+# @test size(individual1.network,2) == 3
+# @test size(individual3.network,2) == 3
+# @test individual1.network == individual3.network
+# @test individual1.initstate == individual3.initstate
+# @test individual1.develstate == individual3.develstate
+# @test individual1.optstate == individual3.optstate
+# @test individual1.stable == individual3.stable
+# @test individual1.fitness == individual3.fitness
+
+# #=================================
+# #matmutate
+# mutrate1 = length(find(testind1))*size(testind1,2)
+# mutmat = matmutate(testind1,mutrate1,10)
+# @test find(testind1)==find(mutmat)
+# @test testind1!=mutmat
+
+# mutrate2 = 0
+# mutmat = matmutate(testind1,mutrate2,10)
+# @test find(testind1)==find(mutmat)
+# @test testind1==mutmat
+
+# #=================================
+# #fitnesseval
+# @test fitnesseval(individual1)==individual1.fitness
+# @test_approx_eq fitnesseval(individual1,100) 1
+# individual1.stable=false
+# @test fitnesseval(individual1)==0
+# individual1.stable=true
+
+# #=================================
+# #update - no connectivity change
+# oldinds = deepcopy(inds)
+
+# for i=1:10
+#     update(inds)
+# end
+
+# for i=1:length(inds)
+#     for j=1:length(inds)
+#         @test find(inds[i].network)==find(oldinds[j].network)
+#     end
+# end

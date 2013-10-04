@@ -2,14 +2,14 @@ using Graphs
 using Distributions
 #using Debug
 
-include("constants_test.jl")
-#include("constants.jl")
-#include("constants_bergsieg2002.jl")
-include("types.jl")
-include("individuals.jl")
-include("population.jl")
-include("textprogressbar.jl")
-include("measure.jl")
+require("constants_test.jl")
+#require("constants.jl")
+#require("constants_bergsieg2002.jl")
+require("types.jl")
+require("individuals.jl")
+require("population.jl")
+require("textprogressbar.jl")
+require("measure.jl")
 
 inds = geninds()
 pop  = genpop(inds)
