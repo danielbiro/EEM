@@ -1,74 +1,79 @@
+# ---------------------------
+# constructors
+# ---------------------------
+function Individual(network::Matrix{Float64},initstate::Vector{Int64})
+    Individual(network, initstate, zeros(Int64,G),
+                             zeros(Int64,G), false, 0., 0., 100)
+end
+
+function Individual(network::Matrix{Float64})
+    Individual(network, zeros(Int64,G))
+end
+
+function Individual()
+    Individual(zeros(G,G))
+end
+
+# ---------------------------
+# methods
+# ---------------------------
+
 function iterateind(me::Individual,
                            qtau=10, tterm=100,epsilon=10^-4., a=100)
-    currstate = deepcopy(me.initstate)
-    network = deepcopy(me.network)
+    currstate = copy(me.initstate)
+    #network = deepcopy(me.network)
 
     for i=1:tterm
-        stateupdate = network*currstate
+        stateupdate = me.network*currstate
         stateupdate[find(x -> x>=0,stateupdate)] = 1
         stateupdate[find(x -> x<0,stateupdate)] = -1
         stateupdate = convert(Vector{Int64},stateupdate)
 
         if currstate==stateupdate
             me.stable = true
-            me.develstate = deepcopy(stateupdate)
-            me.pathlength = deepcopy(i)
+            me.develstate = copy(stateupdate)
+            me.pathlength = copy(i)
             break
         elseif i==tterm
             me.stable = false
-            me.develstate = deepcopy(stateupdate)
-            me.pathlength = deepcopy(tterm)
+            me.develstate = copy(stateupdate)
+            me.pathlength = copy(tterm)
         end
 
-        currstate = deepcopy(stateupdate)
+        currstate = copy(stateupdate)
     end
 end
 
-function copy(me::Individual)
-    newind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
-                        zeros(Int64,G), false, 0., 0., 100)
+function randstableind()
 
-    newind.network = deepcopy(me.network)
-    newind.initstate = deepcopy(me.initstate)
-    newind.develstate = deepcopy(me.develstate)
-    newind.optstate = deepcopy(me.optstate)
-    newind.stable = deepcopy(me.stable)
-    newind.fitness = deepcopy(me.fitness)
-    newind.robustness = deepcopy(me.robustness)
-    newind.pathlength = deepcopy(me.pathlength)
+    randind = Individual()
 
-    return newind
+    while randind.stable!=true
+        randind.network = zeros(Float64,G,G)
+        for i=1:G^2
+            if rand()<C
+                randind.network[i] = randn()
+            end
+        end
+        randind.initstate = rand(0:1,G)*2.-1
+        iterateind(randind)
+    end
+
+    return randind
+end
+
+function genfounder()
+    founder = randstableind()
+    founder.fitness = 1
+    founder.optstate = copy(founder.develstate)
 end
 
 function geninds()
-    if INDTYPE=="gaussian"
+    founder = genfounder()
 
-        founder = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
-                             zeros(Int64,G), false, 0., 0., 100)
-
-        while founder.stable!=true
-            founder.network = zeros(Float64,G,G)
-            for i=1:G^2
-                if rand()<C
-                    founder.network[i] = randn()
-                end
-            end
-            founder.initstate = rand(0:1,G)*2.-1
-            iterateind(founder)
-        end
-
-        founder.fitness = 1
-        founder.optstate = deepcopy(founder.develstate)
-
-        individuals = Array(Individual{Float64},N)
-        for i = 1:N
-            individuals[i]= copy(founder)
-        end
-
-    elseif INDTYPE=="markov"
-        individuals=[Individual(rand(Dirichlet(ones(G)),G),
-              rand(Dirichlet(ones(G))), rand(Dirichlet(ones(G))), true, 1.)
-              for i=1:N]
+    individuals = Array(Individual{Float64},N)
+    for i = 1:N
+        individuals[i]= deepcopy(founder)
     end
 
     return individuals
@@ -91,7 +96,7 @@ function mutate(me::Individual, rateparam = 0.1, magparam = 1;
 
     if onemutflag
         i=rand(1:cnum)
-        mutmat = deepcopy(me.network)
+        mutmat = copy(me.network)
         mutmat[nzindx[i]] = magparam*randn()
         return mutmat
     else
@@ -123,9 +128,7 @@ function robustness(me::Individual, iters=10)
 
     for i=1:iters
         #perturbednet = mutate(me,onemutflag=true)
-        perturbed = Individual(mutate(me,onemutflag=true), me.initstate,
-                               zeros(Int64,G), zeros(Int64,G), false,
-                               0., 0., 100)
+        perturbed = Individual(mutate(me,onemutflag=true), me.initstate)
         iterateind(perturbed)
         tempdiff = perturbed.develstate - me.develstate
         dist += sum(tempdiff.^2)/(4*G)
@@ -151,11 +154,11 @@ function reproduce(me::Individual, you::Individual, us::Individual)
     # Segragate rows from input matrices me and you
     # to generate new offspring
     for i in find(x->x==1,reproindxs)
-        us.network[i,:] = deepcopy(me.network[i,:])
+        us.network[i,:] = copy(me.network[i,:])
     end
 
     for j in find(x->x==0,reproindxs)
-        us.network[j,:] = deepcopy(you.network[j,:])
+        us.network[j,:] = copy(you.network[j,:])
     end
 end
 
@@ -168,16 +171,15 @@ function update{T}(mes::Vector{Individual{T}})
     newind = 1
 
     while newind <= length(mes)
-        tempind = Individual(zeros(G,G), zeros(Int64,G), zeros(Int64,G),
-                             zeros(Int64,G), false, 0., 0., 100)
+        tempind = Individual()
 
         z = rand(1:N)
         r = rand(1:N)
         reproduce(oldinds[z],oldinds[r],tempind)
         mutate(tempind)
 
-        tempind.initstate = deepcopy(oldinds[z].initstate)
-        tempind.optstate = deepcopy(oldinds[z].optstate)
+        tempind.initstate = copy(oldinds[z].initstate)
+        tempind.optstate = copy(oldinds[z].optstate)
 
         iterateind(tempind)
         if tempind.stable
