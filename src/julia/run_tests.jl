@@ -1,6 +1,7 @@
 tests = [
     "types",
     "individuals",
+    "population"
     ]
 
 println("Running tests:")

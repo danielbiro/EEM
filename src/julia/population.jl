@@ -9,11 +9,15 @@ function geninds()
     return indvect
 end
 
+function genpop{T}(inds::Vector{Individual{T}})
+    Population(inds,
+               deepcopy(inds[1]),
+               erdos_renyi_graph(N,P,is_directed=false))
+end
+
 function genpop()
     inds = geninds()
-    return Population(inds,
-                      deepcopy(inds[1]),
-                      erdos_renyi_graph(N,P,is_directed=false))
+    genpop(inds)
 end
 
 

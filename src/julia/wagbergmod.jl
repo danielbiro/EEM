@@ -2,8 +2,8 @@ using Graphs
 using Distributions
 #using Debug
 
-#require("constants_test.jl")
 #require("constants.jl")
+#require("constants_test.jl")
 require("constants_bergsieg2002.jl")
 require("types.jl")
 require("individuals.jl")

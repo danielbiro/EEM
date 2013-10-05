@@ -2,12 +2,12 @@
 # constructors
 # ---------------------------
 function Individual(network::Matrix{Float64},initstate::Vector{Int64})
-    Individual(network, initstate, zeros(Int64,G),
-                             zeros(Int64,G), false, 0., 0., 100)
+    Individual(copy(network), copy(initstate), zeros(Int64,G),
+                             zeros(Int64,G), false, 0., 0., 0)
 end
 
 function Individual(network::Matrix{Float64})
-    Individual(network, zeros(Int64,G))
+    Individual(copy(network), zeros(Int64,G))
 end
 
 function Individual()
@@ -94,7 +94,7 @@ function genfounder()
     return founder
 end
 
-function mutate(me::Individual; onemutflag=false)
+function mutate(me::Individual)
 # mutate nonzero elements of an individuals
 # network according to a rate parameter normalized
 # by the size of the nonzero entries in an
@@ -104,18 +104,19 @@ function mutate(me::Individual; onemutflag=false)
     nzindx = find(me.network)
 
     # Determine the connectivity of the matrix
-    # by counting number of nonzeros
+    # by counting the number of non-zeros
     cnum = length(nzindx)
-
+    mutflag=false
     for i=1:cnum
         # For each non-zero entry:
         # With probability R/c*G^2, note cnum=cG^2
         if  rand() < MUTRATE/cnum
             # Mutate a non-zero entry by a number chosen from a gaussian
             me.network[nzindx[i]] =  MUTMAG*randn()
+            mutflag=true
         end
     end
-
+    return mutflag
 end
 
 function onemut(me::Individual)
@@ -169,13 +170,17 @@ function reproduce(me::Individual, you::Individual, us::Individual)
     for j in find(x->x==0,reproindxs)
         us.network[j,:] = copy(you.network[j,:])
     end
+
+    return reproindxs
 end
 
 
 function update{T}(mes::Vector{Individual{T}})
 # update the state of a vector of individuals
 
-    map(develop,mes)
+    # runs in parallel if julia is
+    # invoked with multiple threads
+    pmap(develop,mes)
 
     oldinds = deepcopy(mes)
 

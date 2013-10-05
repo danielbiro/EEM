@@ -2,8 +2,6 @@
 
 ## short
 
-1. Rewrite tests for Individual types
-1. Paralellize developmental process
 1. Save Measure data to dataframe and plot with gadfly
 
 ## long term
@@ -14,6 +12,9 @@
 1. Cosider using stochastic matrices for individuals -- function to compute perron vector: perron(B)=rref(vcat(hcat(B-eye(size(B,2)), zeros(size(B,2))),ones(size(B,2)+1)'))[1:size(B,2),end] -- generate stoch mats individuals=[Individual(rand(Dirichlet(ones(G)),G), rand(Dirichlet(ones(G))), rand(Dirichlet(ones(G))), true, 1.) for i=1:N]
 
 # completed
+
+1. Paralellize developmental process
+1. Rewrite tests for Individual types
 1. DRY up constants to config files
 1. Test properties
 1. Write custom constructors for Individuals

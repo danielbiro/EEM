@@ -7,11 +7,8 @@ require("individuals.jl")
 require("textprogressbar.jl")
 require("constants.jl")
 
-# question: what proportion of convergent individuals
-#           has an initial state different from its stable state?
-# answer: almost all
-function testdifffininit(tests,tau=10,tterm=100)
-    convtimevect = zeros(Int64,tests)
+function testpathrob(tests)
+    pathlengthvect = zeros(Int64,tests)
     robustvect = zeros(Float64,tests)
 
     tpb=textprogressbar("running: ",[])
@@ -19,7 +16,7 @@ function testdifffininit(tests,tau=10,tterm=100)
     for i=1:tests
         potfounder = randstableind()
         robustness(potfounder)
-        convtimevect[i]=potfounder.pathlength
+        pathlengthvect[i]=potfounder.pathlength
         robustvect[i]=potfounder.robustness
 
         tpb=textprogressbar(i/tests*100,tpb)
@@ -30,10 +27,10 @@ function testdifffininit(tests,tau=10,tterm=100)
     setattr(p1, "title", "distribution")
     setattr(p1, "xlabel", "convergence time")
     setattr(p1, "ylabel", "count")
-    convtimehist = hist(convtimevect,20)
-    add( p1, Histogram(convtimehist...) )
-    setattr(p1, "yrange", (0,max(convtimehist[2])+5))
-    file(p1,"fig/convtimehist_$tau\_$tterm.pdf")
+    pathlengthhist = hist(pathlengthvect,20)
+    add( p1, Histogram(pathlengthhist...) )
+    setattr(p1, "yrange", (0,max(pathlengthhist[2])+5))
+    file(p1,"fig/pathlengthhist_$G\_$C\_$tests.pdf")
     #run(`evince fig/convtimehist2_$tau\_$tterm.pdf`)
 
     p2 = FramedPlot()
@@ -44,13 +41,13 @@ function testdifffininit(tests,tau=10,tterm=100)
     add( p2, Histogram(robusthist...) )
     setattr(p2, "yrange", (0,max(robusthist[2])+5))
     file(p2,"fig/robustvect_$G\_$C\_$tests.pdf")
-    run(`evince fig/robustvect_$G\_$C\_$tests.pdf fig/convtimehist_$tau\_$tterm.pdf`)
+    run(`evince fig/robustvect_$G\_$C\_$tests.pdf fig/pathlengthhist_$G\_$C\_$tests.pdf`)
 
-    return min(convtimevect), max(convtimevect), mean(convtimevect),
+    return min(pathlengthvect), max(pathlengthvect), mean(pathlengthvect),
            min(robustvect), max(robustvect), mean(robustvect)
 end
 
-println(testdifffininit(1000,10,100))
+println(testpathrob(1000))
 
 # question: how does proportion of individuals converging
 #           scale with individual connectivity
@@ -75,7 +72,9 @@ println(testdifffininit(1000,10,100))
 #           in short-term convergence
 
 
-
+# question: what proportion of convergent individuals
+#           has an initial state different from its stable state?
+# answer: almost all
 
 
 
