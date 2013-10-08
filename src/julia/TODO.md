@@ -2,8 +2,9 @@
 
 ## short
 
-1. Save Measure data to dataframe and plot with gadfly
+1. Add unique timestamp to output files
 1. Save networks at any timepoint and plot heatmap of the population
+1. Save Measure data to dataframe and plot with gadfly
 
 ## long term
 

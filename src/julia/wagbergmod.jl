@@ -1,18 +1,21 @@
 using Graphs
 using Distributions
+using Datetime
 #using Debug
 
-#require("constants.jl")
+require("constants.jl")
 #require("constants_test.jl")
-require("constants_bergsieg2002.jl")
+#require("constants_bergsieg2002.jl")
 require("types.jl")
 require("individuals.jl")
 require("population.jl")
 require("textprogressbar.jl")
 require("measure.jl")
 
+dt = now()
 pop  = genpop()
 meas = genmeasure()
+save(pop,"testmatsave.txt")
 
 tpb=textprogressbar("running grn evolution: ",[])
 for t=1:GENS
@@ -21,6 +24,16 @@ for t=1:GENS
     tpb=textprogressbar(t/GENS*100,tpb)
 end
 textprogressbar(" done.",tpb)
+
+dty = year(dt)
+dtm = month(dt)
+dtd = day(dt)
+dth = hour(dt)
+dtmin = minute(dt)
+dts = second(dt)
+
+timestamp = "$dty$dtm$dtd\_$dth$dtmin$dts"
+
 
 save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
 

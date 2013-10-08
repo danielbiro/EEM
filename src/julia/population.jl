@@ -30,3 +30,13 @@ end
 function update(me::AbstractGraph)
 
 end
+
+function save(pop::Population, fname::String)
+    networks = zeros(G^2+1,N+1)
+    networks[:,1] = [0.:G^2]
+    networks[1,:] = [0.:N]
+    for i = 1:N
+        networks[2:end,i+1] = pop.individuals[i].network
+    end
+    f = writedlm(joinpath("data",fname), networks, '\t')
+end
