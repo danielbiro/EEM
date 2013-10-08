@@ -3,6 +3,7 @@
 ## short
 
 1. Save Measure data to dataframe and plot with gadfly
+1. Save networks at any timepoint and plot heatmap of the population
 
 ## long term
 
