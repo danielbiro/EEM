@@ -34,8 +34,20 @@ function measure(pop::Population, m::Measure, t::Time)
 end
 
 function save(m::Measure, fname::String)
-    f = writedlm(joinpath("data",fname),
-                 hcat(m.indtypes,m.inittypes,m.develtypes, m.opttypes,
-                      m.fitness, m.fitnessstd, m.robustness, m.robustnessstd,
-                      m.pathlength, m.pathlengthstd), ',')
+    df = DataFrame(indtypes=m.indtypes,
+                   inittypes=m.inittypes,
+                   develtypes=m.develtypes,
+                   opttypes=m.opttypes,
+                   fitness=m.fitness,
+                   fitnessstd=m.fitnessstd,
+                   robustness=m.robustness,
+                   robustnessstd=m.robustnessstd,
+                   pathlength=m.pathlength,
+                   pathlengthstd=m.pathlengthstd)
+    writetable(fname,df)
+    # f = writedlm(joinpath("data",fname),
+    #              hcat(m.indtypes,m.inittypes,m.develtypes, m.opttypes,
+    #                   m.fitness, m.fitnessstd, m.robustness, m.robustnessstd,
+    #                   m.pathlength, m.pathlengthstd), ',')
+    return df
 end

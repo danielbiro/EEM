@@ -377,17 +377,22 @@ def importData(filename):
     else:
         dataset_name = string.split(filename,'\\')[-1][:-4]
 
+    nl = 1
     for line in open(filename,'rU').xreadlines():
         t = string.split(line[:-1],'\t') ### remove end-of-line character - file is tab-delimited
         if first_row:
-            column_header = t[1:]
+            #column_header = t[1:]
+            column_header = t
             first_row=False
         else:
             if ' ' not in t and '' not in t: ### Occurs for rows with missing data
-                s = map(float,t[1:])
-                if (abs(max(s)-min(s)))>0:
-                    matrix.append(s)
-                    row_header.append(t[0])
+                #s = map(float,t[1:])
+                s = map(float,t)
+                #if (abs(max(s)-min(s)))>0:
+                matrix.append(s)
+                #row_header.append(t[0])
+                row_header.append("%d" % nl)
+                nl += 1
 
     time_diff = str(round(time.time()-start_time,1))
     try:
