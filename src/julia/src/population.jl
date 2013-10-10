@@ -1,5 +1,3 @@
-require("utilities.jl")
-
 function geninds()
     founder = genfounder()
 

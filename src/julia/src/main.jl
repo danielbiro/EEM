@@ -7,15 +7,15 @@ using DataFrames
 configfile = "constants.jl"
 #configfile = "constants_test.jl"
 #configfile = "constants_bergsieg2002.jl"
+require(joinpath("../input",configfile))
 
-require(joinpath("input",configfile))
-#require("constants_test.jl")
-#require("constants_bergsieg2002.jl")
+require("utilities.jl")
 require("types.jl")
 require("individuals.jl")
 require("population.jl")
 require("textprogressbar.jl")
 require("measure.jl")
+
 
 dt = now()
 dty = year(dt)
@@ -25,8 +25,8 @@ dth = hour(dt)
 dtmin = minute(dt)
 dts = second(dt)
 timestamp = "$dty$dtm$dtd\_$dth$dtmin$dts"
-run(`mkdir output/$timestamp`)
-run(`cp input/$configfile output/$timestamp`)
+run(`mkdir ../output/$timestamp`)
+run(`cp ../input/$configfile ../output/$timestamp`)
 
 pop  = genpop()
 meas = genmeasure()
@@ -39,8 +39,8 @@ for t=1:GENS
 end
 textprogressbar(" done.",tpb)
 
-save(pop,"output/$timestamp\/nets.tsv")
-save(meas,"output/$timestamp\/sim.csv")
+save(pop,"../output/$timestamp\/nets.tsv")
+save(meas,"../output/$timestamp\/sim.csv")
 #save(pop,"nets_g$G\_n$N\_c$C\_t$GENS\.tsv")
 #save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
 

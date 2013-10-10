@@ -5,9 +5,10 @@ using Base.Test
 require("test/constants.jl")
 
 # srcdir
-require("types.jl")
-require("individuals.jl")
-require("population.jl")
+require("src/types.jl")
+require("src/individuals.jl")
+require("src/utilities.jl")
+require("src/population.jl")
 
 function testpopulation()
     @test typeof(genpop())==Population{Individual{Float64}}

@@ -5,8 +5,8 @@ using Base.Test
 require("test/constants.jl")
 
 # srcdir
-require("types.jl")
-require("individuals.jl")
+require("src/types.jl")
+require("src/individuals.jl")
 
 
 function testindividuals()

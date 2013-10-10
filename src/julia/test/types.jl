@@ -1,4 +1,4 @@
 using Graphs
-require("types.jl")
+require("src/types.jl")
 
 @assert Individual <: Individuals
