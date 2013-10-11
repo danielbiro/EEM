@@ -7,7 +7,9 @@ using DataFrames
 configfile = "constants.jl"
 #configfile = "constants_test.jl"
 #configfile = "constants_bergsieg2002.jl"
-require(joinpath("../input",configfile))
+indir = joinpath("..","input")
+outdir = joinpath("..","output")
+require(joinpath(indir,configfile))
 
 require("utilities.jl")
 require("types.jl")
@@ -16,17 +18,11 @@ require("population.jl")
 require("textprogressbar.jl")
 require("measure.jl")
 
+timestamp = gentimestamp()
 
-dt = now()
-dty = year(dt)
-dtm = month(dt)
-dtd = day(dt)
-dth = hour(dt)
-dtmin = minute(dt)
-dts = second(dt)
-timestamp = "$dty$dtm$dtd\_$dth$dtmin$dts"
-run(`mkdir ../output/$timestamp`)
-run(`cp ../input/$configfile ../output/$timestamp`)
+simdir = joinpath(outdir,timestamp)
+run(`mkdir $simdir`)
+run(`cp $indir\/$configfile $simdir`)
 
 pop  = genpop()
 meas = genmeasure()
@@ -39,8 +35,8 @@ for t=1:GENS
 end
 textprogressbar(" done.",tpb)
 
-save(pop,"../output/$timestamp\/nets.tsv")
-save(meas,"../output/$timestamp\/sim.csv")
+save(pop,joinpath(simdir,"nets.tsv"))
+save(meas,joinpath(simdir,"sim.csv"))
 #save(pop,"nets_g$G\_n$N\_c$C\_t$GENS\.tsv")
 #save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
 

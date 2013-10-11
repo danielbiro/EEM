@@ -2,9 +2,8 @@
 
 ## short
 
-1. Add unique timestamp to output files
-1. Save networks at any timepoint and plot heatmap of the population
-1. Save Measure data to dataframe and plot with gadfly
+1. Plot heatmap of networks
+1. Plot measure data with Gadfly
 
 ## long term
 
@@ -15,6 +14,10 @@
 
 # completed
 
+1. Save networks to dataframe at any timepoint
+1. Save Measure data to dataframe
+1. Reorganize folder structure
+1. Add unique timestamp to output files
 1. Paralellize developmental process
 1. Rewrite tests for Individual types
 1. DRY up constants to config files
@@ -25,7 +28,7 @@
 1. Keep track of path length
 1. Add function to compute robustness
 1. Add function for sexual reproduction
-1. Translate python version of wagbergmod to julia
+1. Translate python version to julia
 1. Give each individual an initial state and initialize it to that of founder
 
 
