@@ -40,6 +40,8 @@ save(meas,joinpath(simdir,"sim.csv"))
 #save(pop,"nets_g$G\_n$N\_c$C\_t$GENS\.tsv")
 #save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
 
+run(`python clustergram.py --i $simdir\/nets.tsv`)
+
 println("\nSample Final Individuals from Population:")
 println("===========================================\n")
 println(pop.individuals[1:5])

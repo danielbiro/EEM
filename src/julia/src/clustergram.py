@@ -240,7 +240,7 @@ def heatmap(x, row_header, column_header, row_method,
     print 'Exporting:',filename
     filename = filename[:-3]+'png'
     pylab.savefig(filename, dpi=100) #,dpi=200
-    pylab.show()
+    #pylab.show()
 
 def getColorRange(x):
     """ Determines the range of colors, centered at zero, for normalizing cmap """
