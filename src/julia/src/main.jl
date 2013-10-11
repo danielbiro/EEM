@@ -13,6 +13,7 @@ require(joinpath(indir,configfile))
 
 require("utilities.jl")
 require("types.jl")
+require("modularity.jl")
 require("individuals.jl")
 require("population.jl")
 require("textprogressbar.jl")
@@ -26,6 +27,7 @@ run(`cp $indir\/$configfile $simdir`)
 
 pop  = genpop()
 meas = genmeasure()
+save(pop,joinpath(simdir,"initnets.tsv"))
 
 tpb=textprogressbar("running grn evolution: ",[])
 for t=1:GENS
@@ -35,12 +37,13 @@ for t=1:GENS
 end
 textprogressbar(" done.",tpb)
 
-save(pop,joinpath(simdir,"nets.tsv"))
+save(pop,joinpath(simdir,"finalnets.tsv"))
 save(meas,joinpath(simdir,"sim.csv"))
 #save(pop,"nets_g$G\_n$N\_c$C\_t$GENS\.tsv")
 #save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
 
-run(`python clustergram.py --i $simdir\/nets.tsv`)
+run(`python clustergram.py --i $simdir\/initnets.tsv`)
+run(`python clustergram.py --i $simdir\/finalnets.tsv`)
 
 println("\nSample Final Individuals from Population:")
 println("===========================================\n")
@@ -58,3 +61,5 @@ println("\nAverage number of non-zeros in final pop:")
 println("===========================================\n")
 println(mean(map(x -> length(find(x.network)), pop.individuals)))
 println()
+
+run(`evince $simdir\/initnets.pdf $simdir\/finalnets.pdf`)

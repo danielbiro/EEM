@@ -9,6 +9,8 @@ type Individual{T} <: Individuals
     fitness::Float64
     robustness::Float64
     pathlength::Int64
+    modularity::Float64
+    hierarchy::Int64
 end
 
 type Population{I <: Individuals}
@@ -28,8 +30,10 @@ type Measure
     inittypes::Vector{Int64}
     develtypes::Vector{Int64}
     opttypes::Vector{Int64}
-    minimumdescriptionlength::Vector{Any}
-    hierarchy::Vector{Int64}
+    minimumdescriptionlength::Vector{Float64}
+    minimumdescriptionlengthstd::Vector{Float64}
+    hierarchy::Vector{Float64}
+    hierarchystd::Vector{Float64}
 end
 
 typealias Time Int64

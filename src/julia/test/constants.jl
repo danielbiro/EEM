@@ -9,3 +9,12 @@ const SELSTR=1 # selection strength aka \sigma
 const ROBIT=10 # number of iterations to run in robustness testing
 const P=0.5 # connectivity probability for population structure graph
 const TAU=10 # look-behind depth for convergence testing with sigmoidal function, default 10
+const INP1=[] # if empty, the intial state of the founder is generated at random
+
+# flags
+const RANDPOP=false # if true generate initial population with random interactions rather than a homogeneous one
+const SEXUALREPRO=true # if true interleave rows from two individuals each generation
+const MEASUREFIT=true # measure fitness
+const MEASUREROBUST=true # measure robustness
+const MEASUREMOD=false # measure modularity
+const SWITCHENV=false # switch inputs

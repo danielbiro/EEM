@@ -3,7 +3,11 @@ function geninds()
 
     indvect = Array(Individual{Float64},N)
     for i = 1:N
-        indvect[i]= deepcopy(founder)
+        if RANDPOP
+            indvect[i] = stableind(founder.initstate)
+        else
+            indvect[i] = deepcopy(founder)
+        end
     end
 
     return indvect

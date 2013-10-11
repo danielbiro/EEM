@@ -12,3 +12,6 @@ function gentimestamp()
     dts = second(dt)
     return "$dty$dtm$dtd\_$dth$dtmin$dts"
 end
+
+sigmoid(x, a) = 1/(1+exp(-a*x))
+sigmoid(x) = 1/(1+exp(-5*x))

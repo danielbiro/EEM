@@ -3,7 +3,7 @@
 # ---------------------------
 function Individual(network::Matrix{Float64},initstate::Vector{Int64})
     Individual(copy(network), copy(initstate), zeros(Int64,G),
-                             zeros(Int64,G), false, 0., 0., 0)
+                             zeros(Int64,G), false, 0., 0., 0, 0., 0)
 end
 
 function Individual(network::Matrix{Float64})
@@ -61,7 +61,7 @@ function fitnesseval(me::Individual)
     end
 end
 
-function randstableind()
+function stableind(initstate::Vector{Int64})
 # generate a random Individual that is
 # developmentally stable
 
@@ -74,9 +74,19 @@ function randstableind()
                 randind.network[i] = randn()
             end
         end
-        randind.initstate = rand(0:1,G)*2.-1
+        randind.initstate = copy(initstate)
         iterateind(randind)
     end
+
+    randind.fitness=1
+
+    return randind
+end
+
+function randstableind()
+# generate a random Individual that is
+# developmentally stable
+    randind = stableind(rand(0:1,G)*2-1)
 
     return randind
 end
@@ -86,8 +96,11 @@ function genfounder()
 # developmental state is equivalent to
 # its optimal state and thereby determines
 # the optimal state for the population
-
-    founder = randstableind()
+    if isempty(INP1)
+        founder = randstableind()
+    else
+        founder = stableind(INP1)
+    end
     founder.fitness = 1
     founder.optstate = copy(founder.develstate)
 
@@ -148,15 +161,39 @@ function robustness(me::Individual)
     me.robustness=dist/ROBIT
 end
 
-function develop(me::Individual)
-# run the developmental process
-# and update fitness and robustness measures
-
-    iterateind(me)
-    fitnesseval(me)
-    robustness(me)
+function modularity(me::Individual)
+    weights = sigmoid(flatten(me.network))
+    immv = infomap(weights,10,tempname())
+    immdl = immv[end]
+    imhl = length(immv)
+    me.modularity = immdl
+    me.hierarchy = imhl
 end
 
+function switchinput(me::Individual)
+    me.initstate = -1*me.initstate
+end
+
+
+function develop(me::Individual)
+# run the developmental process
+
+    iterateind(me)
+
+end
+
+function measure(me::Individual)
+# update fitness, robustness, and modularity measures
+    if MEASUREFIT
+        fitnesseval(me)
+    end
+    if MEASUREROBUST
+        robustness(me)
+    end
+    if MEASUREMOD
+        modularity(me)
+    end
+end
 
 function reproduce(me::Individual, you::Individual, us::Individual)
 # sexual reproduction via independent row segregation
@@ -181,6 +218,7 @@ function update{T}(mes::Vector{Individual{T}})
     # runs in parallel if julia is
     # invoked with multiple threads
     pmap(develop,mes)
+    pmap(measure,mes)
 
     oldinds = deepcopy(mes)
 
@@ -190,8 +228,14 @@ function update{T}(mes::Vector{Individual{T}})
         tempind = Individual()
 
         z = rand(1:N)
-        r = rand(1:N)
-        reproduce(oldinds[z],oldinds[r],tempind)
+
+        if SEXUALREPRO
+            r = rand(1:N)
+            reproduce(oldinds[z],oldinds[r],tempind)
+        else
+            tempind.network = copy(oldinds[z].network)
+        end
+
         mutate(tempind)
 
         tempind.initstate = copy(oldinds[z].initstate)
@@ -199,12 +243,29 @@ function update{T}(mes::Vector{Individual{T}})
 
         iterateind(tempind)
         if tempind.stable
-            fitnesseval(tempind)
+
+            if MEASUREFIT
+                fitnesseval(tempind)
+            else
+                tempind.fitness = 1.
+            end
+
             if tempind.fitness >= rand()
+                if MEASUREROBUST
+                    robustness(tempind)
+                else
+                    tempind.robustness = 0.
+                end
+
                 mes[newind] = deepcopy(tempind)
-                robustness(mes[newind])
                 newind += 1
             end
+
         end
     end
+
+    if SWITCHENV
+        map(switchinput,mes)
+    end
+
 end

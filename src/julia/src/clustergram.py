@@ -226,7 +226,8 @@ def heatmap(x, row_header, column_header, row_method,
     else:
         dataset_name = string.split(filename,'\\')[-1][:-4]
         root_dir = string.join(string.split(filename,'\\')[:-1],'\\')+'\\'
-    filename = root_dir+'Clustering-%s-hierarchical_%s_%s.pdf' % (dataset_name,column_metric,row_metric)
+    filename = root_dir+'%s.pdf' % dataset_name
+    #filename = root_dir+'Clustering-%s-hierarchical_%s_%s.pdf' % (dataset_name,column_metric,row_metric)
     cb.set_label("Differential Expression (log2 fold)")
     exportFlatClusterData(filename, new_row_header,new_column_header,xt,ind1,ind2)
 
