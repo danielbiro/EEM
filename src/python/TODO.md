@@ -13,6 +13,7 @@
 1. Place population on graph using networkx
 1. Define fitness function in terms of graph neighbors
 1. Consider alternative matrix representations of individuals (e.g. doubly stochastic matrices; consider improving computability of the individual developmental process)
+1. network [community detection](http://perso.crans.org/aynaud/communities/) with networkx or [modularity](http://igraph.sourceforge.net/doc/python/igraph.GraphBase-class.html#modularity) with igraph
 
 ## integration with sqlalchemy and saga-python
 1. Add new key and foreign key relationship between simulation and individual tables to allow for processing of replicate simulations

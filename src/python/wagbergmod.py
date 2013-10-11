@@ -36,7 +36,7 @@ def IterateInd(IndMat, IntState, Term = 100, tau = 10, epsilon = 10**-4, a = 100
 
         for j in range(tau):
             TempDiff = PastState[:,j]-AvgState[:]
-            Dist = Dist + np.sum(TempDiff)**2/(4*N)
+            Dist = Dist + np.sum(TempDiff**2)/(4*N)
             # Calculate the distance metric based on the past states and the defined distance
             # metric
 
@@ -97,7 +97,7 @@ def MatMutate(InitMat, RateParam = 0.1, MagParam = 1):
         # For each non-zero entry:
         if  nprandom.random() < RateParam/(c*N**3):
             # With probability R/cN^2
-            MutMat[P[0][i],P[1][i]] =  MagParam*nprandom.normal()
+            MutMat[P[0][i],P[1][i]] = MagParam*nprandom.normal()
             # Mutate a non-zero entry by a number chosen from a gaussian
 
     return MutMat
@@ -205,26 +205,29 @@ def ForwardGen(Population, GoalState, ConnectFlag = 1, MutateFlag = 1, Reproduce
     PopNum = 0
 
     while PopNum < M:
-        Z = nprandom.randint(0,M,1)
-        if PopFitness[Z[0]] > nprandom.random():
+        Z = nprandom.randint(0,M)
+        if PopFitness[Z] > nprandom.random():
 
             if MutateFlag == 1:
-                TempInd = MatMutate(Population[Z[0],:,:], RateParam, MagParam)
+                TempInd = MatMutate(Population[Z,:,:], RateParam, MagParam)
 
             if ConnectFlag == 1:
                 TempInd = ConnectMutate(TempInd, mu, b, MagParam1, MaintainFlag)
 
             if ReproduceFlag == 1:
-                P = nprandom.randint(0,M,1)
-                if PopFitness[P[0]] > nprandom.random():
-                    TempInd = Reproduce(TempInd, Population[P[0],:,:])
+                P = nprandom.randint(0,M)
+                if PopFitness[P] > nprandom.random():
+                    TempInd = Reproduce(TempInd, Population[P,:,:])
 
             (ConFlagTemp, PopStateTemp, ConTimeTemp) = IterateInd(TempInd,GoalState,Term,tau,epsilon,a)
 
+            # Cameron: should we really enforce this?
+            # this prevents non-convergent individuals from
+            # ever entering the population via mutation
+            # I think it is enough that their fitness is 0
             if ConFlagTemp == 1:
                 NewPop[PopNum,:,:] = copy.copy(TempInd)
                 PopNum = PopNum + 1
-
 
     return NewPop, PopFitness
 
@@ -250,7 +253,7 @@ def SimPop(NumGens=10,NumInds=10,NumGenes=10):
     AvgPopFit = np.zeros(NumGens)
     NewPop = Population
     for i in range(NumGens):
-        NewPop, PopFit = ForwardGen(NewPop,IntState1)
+        NewPop, PopFit = ForwardGen(NewPop,FinState1)
         AvgPopFit[i] = np.mean(PopFit)
     print AvgPopFit
 
