@@ -17,5 +17,5 @@ const RANDPOP=true # if true generate initial population with random interaction
 const SEXUALREPRO=false # if true interleave rows from two individuals each generation
 const MEASUREFIT=false # measure fitness
 const MEASUREROBUST=false # measure robustness
-const MEASUREMOD=true # measure modularity
+const MEASUREMOD=false # measure modularity
 const SWITCHENV=true # switch inputs

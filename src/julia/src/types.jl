@@ -20,6 +20,7 @@ type Population{I <: Individuals}
 end
 
 type Measure
+    time::Vector{Int64}
     fitness::Vector{Float64}
     fitnessstd::Vector{Float64}
     robustness::Vector{Float64}

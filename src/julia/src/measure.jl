@@ -1,4 +1,5 @@
 function genmeasure()
+    time = zeros(Int64,GENS)
     fitness = zeros(Float64,GENS)
     fitnessstd = zeros(Float64,GENS)
     robustness = zeros(Float64,GENS)
@@ -14,12 +15,13 @@ function genmeasure()
     hierarchy = zeros(Float64,GENS)
     hierarchystd = zeros(Float64,GENS)
 
-    Measure(fitness,fitnessstd,robustness,robustnessstd,
+    Measure(time, fitness,fitnessstd,robustness,robustnessstd,
             pathlength, pathlengthstd, indtypes, inittypes,
             develtypes, opttypes, mdl, mdlstd, hierarchy, hierarchystd)
 end
 
 function measure(pop::Population, m::Measure, t::Time)
+    m.time[t] = t
     m.indtypes[t] = length(unique(map(x->x.network,pop.individuals)))
     m.inittypes[t] = length(unique(map(x->x.initstate,pop.individuals)))
     m.develtypes[t] = length(unique(map(x->x.develstate,pop.individuals)))
@@ -42,7 +44,8 @@ function measure(pop::Population, m::Measure, t::Time)
 end
 
 function save(m::Measure, fname::String)
-    df = DataFrame(indtypes=m.indtypes,
+    df = DataFrame(time=m.time,
+                   indtypes=m.indtypes,
                    inittypes=m.inittypes,
                    develtypes=m.develtypes,
                    opttypes=m.opttypes,
