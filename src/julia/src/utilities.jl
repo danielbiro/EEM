@@ -15,3 +15,12 @@ end
 
 sigmoid(x, a) = 1/(1+exp(-a*x))
 sigmoid(x) = 1/(1+exp(-5*x))
+
+function netsname(t)
+    nn = replace(@sprintf("%6.0d",t)," ","0")
+    nn = "nets$nn\.tsv"
+end
+
+function clustergram(fname)
+    run(`python clustergram.py --i $fname`)
+end

@@ -58,11 +58,6 @@ def main(argv):
     #delimiter = '  '
 
     df = readdata(options.data_filename)
-    # f = open ( dfname , 'r')
-    # l = [ map(float,line.split(delimiter)) for line in f ]
-    # l = np.array(l)
-    # #print l
-    # f.close()
 
     rc('text', usetex=True)
     rc('font', family='serif')

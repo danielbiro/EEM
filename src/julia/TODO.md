@@ -3,7 +3,6 @@
 ## short
 
 1. Adapt python script to make a plot for each column in output
-1. Add parameter to configure measurement period
 
 ## hold
 
@@ -13,6 +12,7 @@
 
 ## completed
 
+1. Add parameters to configure measurement period
 1. Plot measure data with Python
 1. Implement input switching
 1. Integrate measure of individual [modularity][1] (already implemented)

@@ -2,8 +2,12 @@ using Graphs
 using Distributions
 using Datetime
 using DataFrames
-using Gadfly
+#using Gadfly
 #using Debug
+
+#-------------------------
+# setup
+#-------------------------
 
 configfile = "constants.jl"
 #configfile = "constants_test.jl"
@@ -26,23 +30,33 @@ simdir = joinpath(outdir,timestamp)
 run(`mkdir $simdir`)
 run(`cp $indir\/$configfile $simdir`)
 
+#-------------------------
+# run simulation
+#-------------------------
+
 pop  = genpop()
 meas = genmeasure()
-save(pop,joinpath(simdir,"initnets.tsv"))
 
+save(pop,joinpath(simdir,netsname(0)))
+measnum = 1
 tpb=textprogressbar("running grn evolution: ",[])
 for t=1:GENS
     update(pop)
-    measure(pop,meas,t)
+    if (mod(t-1,MEASPERIOD)==0) | (t==GENS)
+        measure(pop,meas,t,measnum)
+        measnum += 1
+    end
+    if (mod(t-1,CLUSTPERIOD)==0) | (t==GENS)
+        save(pop,joinpath(simdir,netsname(t)))
+    end
     tpb=textprogressbar(t/GENS*100,tpb)
 end
 textprogressbar(" done.",tpb)
 
-save(pop,joinpath(simdir,"finalnets.tsv"))
 df = save(meas,joinpath(simdir,"sim.csv"))
 
 #-------------------------
-# plot data
+# plot results
 #-------------------------
 
 # Gadfly not working...
@@ -52,14 +66,17 @@ df = save(meas,joinpath(simdir,"sim.csv"))
 # Python script substitutes for Gadfly to plot basic data
 plotxvar = "time"
 plotyvar = "pathlength"
-run(`python plotdata.py -d $simdir\/sim.csv -o $simdir\/$plotyvar\.pdf -x $plotxvar -y $plotyvar`)
+run(`python plotdata.py
+     -d $simdir\/sim.csv
+     -o $simdir\/$plotyvar\.pdf
+     -x $plotxvar -y $plotyvar`)
 
-#save(pop,"nets_g$G\_n$N\_c$C\_t$GENS\.tsv")
-#save(meas,"sim_g$G\_n$N\_c$C\_t$GENS\.csv")
-
-# Make clustergrams of population
-run(`python clustergram.py --i $simdir\/initnets.tsv`)
-run(`python clustergram.py --i $simdir\/finalnets.tsv`)
+nettsvs = map(x->chomp(joinpath(simdir,x)),
+              readlines(`ls $simdir` |> `grep nets` |> `grep .tsv`))
+netpdfs = map(x->replace(x,".tsv",".pdf"),nettsvs)
+pmap(clustergram,nettsvs)
+run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$simdir\/nets.pdf
+        -dBATCH $netpdfs`)
 
 println("\nSample Final Individuals from Population:")
 println("===========================================\n")
@@ -78,4 +95,4 @@ println("===========================================\n")
 println(mean(map(x -> length(find(x.network)), pop.individuals)))
 println()
 
-run(`evince $simdir\/initnets.pdf $simdir\/finalnets.pdf $simdir\/$plotyvar\.pdf`)
+run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)

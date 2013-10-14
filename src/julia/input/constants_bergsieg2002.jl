@@ -11,6 +11,12 @@ const ROBIT=10 # number of iterations to run in robustness testing
 const P=0.5 # connectivity probability for population structure graph
 const TAU=10 # look-behind depth for convergence testing with sigmoidal function, default 10
 const INP1=[] # if empty, the intial state of the founder is generated at random
+const FRACMEAS = 0.5
+const MEASPERIOD = convert(Int64,round(1/FRACMEAS))
+const NUMMEAS = convert(Int64,floor(GENS/MEASPERIOD) + 1)
+const FRACCLUST = 0.1
+const CLUSTPERIOD = convert(Int64,round(1/FRACCLUST))
+const NUMCLUST = convert(Int64,floor(GENS/CLUSTPERIOD) + 2)
 
 # flags
 const RANDPOP=false # if true generate initial population with random interactions rather than a homogeneous one
