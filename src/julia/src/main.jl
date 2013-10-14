@@ -96,3 +96,4 @@ println(mean(map(x -> length(find(x.network)), pop.individuals)))
 println()
 
 run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
+run(`libreoffice $simdir\/sim.csv`)

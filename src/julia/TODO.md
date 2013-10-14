@@ -3,6 +3,8 @@
 ## short
 
 1. Adapt python script to make a plot for each column in output
+1. Cluster population average of individual networks
+1. Fix scaling of weights to work with mod meas
 
 ## hold
 

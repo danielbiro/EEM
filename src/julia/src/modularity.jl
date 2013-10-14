@@ -12,7 +12,9 @@ function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
             end
         end
     end
+    #println("---------------")
     #println(linklist)
+    #println("---------------")
 
     #-----------------------------
     # run infomap on linklist
@@ -27,8 +29,7 @@ function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
                                     -N $imruns
                                     --directed -w -0` |>
                    `grep -Po
-                   "((?<=Codelengths for $imruns trials: )\[.*\])|
-                    (?<=total:\s{10})\[.*\]"`)
+                   "((?<=Codelengths for $imruns trials: )\[.*\])|(?<=total:\s{10})\[.*\]"`)
     #println(imm)
     run(`rm -f $npipe`)
 
