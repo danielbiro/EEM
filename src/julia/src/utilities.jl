@@ -18,7 +18,7 @@ sigmoid(x) = 1/(1+exp(-5*x))
 
 function netsname(t)
     nn = replace(@sprintf("%6.0d",t)," ","0")
-    nn = "nets$nn\.tsv"
+    nn = "nets$nn"
 end
 
 function clustergram(fname)

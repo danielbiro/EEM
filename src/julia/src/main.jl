@@ -69,7 +69,7 @@ df = save(meas,joinpath(simdir,"sim.csv"))
 
 # Python script substitutes for Gadfly to plot basic data
 plotxvar = "time"
-plotyvar = ["fitness","pathlength","indtypes","develtypes"]
+plotyvar = ["pathlength","indtypes","develtypes"]
 plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
 run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
 
@@ -81,7 +81,6 @@ run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
 
 run(`python plotdata.py
      -d $simdir -x $plotxvar -y $plotyvar`)
->>>>>>> 79b5c93ec3be897949fa2701a8f1f39029312524
 run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$plotspdf
         -dBATCH $plotspdfs`)
 
