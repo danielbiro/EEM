@@ -1,6 +1,6 @@
 # parameters
 const G=10 # number of genes per individual, default 10, small 3
-const N=500 # population size, default 500, small 10
+const N=10 # population size, default 500, small 10
 const C=1 # connectivity probability for individuals (Gaussian matrices)
 const GENS=1000 # total number of generations, default 400, small 10
 const MAXCONV=100 # max number of iterations to test for convergence
@@ -24,5 +24,6 @@ const RANDPOP=true # if true generate initial population with random interaction
 const SEXUALREPRO=false # if true interleave rows from two individuals each generation
 const MEASUREFIT=false # measure fitness
 const MEASUREROBUST=false # measure robustness
-const MEASUREMOD=false # measure modularity
+const MEASUREMOD=true # measure modularity
 const SWITCHENV=true # switch inputs
+const PROGBAR=true # if true show progressbar

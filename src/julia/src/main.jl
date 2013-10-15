@@ -43,7 +43,13 @@ meas = genmeasure()
 
 save(pop,joinpath(simdir,netsname(0)))
 measnum = 1
-tpb=textprogressbar("running grn evolution: ",[])
+
+if PROGBAR
+    tpb=textprogressbar("running grn evolution: ",[])
+else
+    println("start loop")
+end
+
 for t=1:GENS
     update(pop)
     if (mod(t-1,MEASPERIOD)==0) | (t==GENS)
@@ -53,9 +59,16 @@ for t=1:GENS
     if (mod(t-1,CLUSTPERIOD)==0) | (t==GENS)
         save(pop,joinpath(simdir,netsname(t)))
     end
-    tpb=textprogressbar(t/GENS*100,tpb)
+    if PROGBAR
+        tpb=textprogressbar(t/GENS*100,tpb)
+    end
 end
-textprogressbar(" done.",tpb)
+
+if PROGBAR
+    textprogressbar(" done.",tpb)
+else
+    println("end loop")
+end
 
 df = save(meas,joinpath(simdir,"sim.csv"))
 
@@ -72,12 +85,6 @@ plotxvar = "time"
 plotyvar = ["pathlength","indtypes","develtypes"]
 plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
 run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
-
-#plotyvar = "pathlength"
-# run(`python plotdata.py
-#      -d $simdir\/sim.csv
-#      -o $simdir\/$plotyvar\.pdf
-#      -x $plotxvar -y $plotyvar`)
 
 run(`python plotdata.py
      -d $simdir -x $plotxvar -y $plotyvar`)

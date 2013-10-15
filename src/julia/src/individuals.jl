@@ -171,6 +171,7 @@ function modularity(me::Individual)
     imhl = length(immv)
     me.modularity = immdl
     me.hierarchy = imhl
+
 end
 
 function switchinput(me::Individual)
@@ -221,7 +222,6 @@ function update{T}(mes::Vector{Individual{T}})
     # runs in parallel if julia is
     # invoked with multiple threads
     pmap(develop,mes)
-    pmap(measure,mes)
 
     oldinds = deepcopy(mes)
 
@@ -254,11 +254,6 @@ function update{T}(mes::Vector{Individual{T}})
             end
 
             if tempind.fitness >= rand()
-                if MEASUREROBUST
-                    robustness(tempind)
-                else
-                    tempind.robustness = 0.
-                end
 
                 mes[newind] = deepcopy(tempind)
                 newind += 1
@@ -267,8 +262,9 @@ function update{T}(mes::Vector{Individual{T}})
         end
     end
 
+    pmap(measure,mes)
+
     if SWITCHENV
         map(switchinput,mes)
     end
-
 end
