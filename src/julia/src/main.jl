@@ -71,10 +71,8 @@ df = save(meas,joinpath(simdir,"sim.csv"))
 plotxvar = "time"
 plotyvar = ["fitness","pathlength","indtypes","develtypes"]
 plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
-<<<<<<< HEAD
-
 run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
-=======
+
 #plotyvar = "pathlength"
 # run(`python plotdata.py
 #      -d $simdir\/sim.csv
