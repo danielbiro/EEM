@@ -28,7 +28,11 @@ timestamp = gentimestamp()
 
 simdir = joinpath(outdir,timestamp)
 run(`mkdir $simdir`)
-run(`cp $indir\/$configfile $simdir`)
+configpath = joinpath(indir,configfile)
+run(`cp $configpath $simdir`)
+
+plotspdf = joinpath(simdir,"plots.pdf")
+netspdf = joinpath(simdir,"nets.pdf")
 
 #-------------------------
 # run simulation
@@ -65,17 +69,18 @@ df = save(meas,joinpath(simdir,"sim.csv"))
 
 # Python script substitutes for Gadfly to plot basic data
 plotxvar = "time"
-plotyvar = "pathlength"
-run(`python plotdata.py
-     -d $simdir\/sim.csv
-     -o $simdir\/$plotyvar\.pdf
-     -x $plotxvar -y $plotyvar`)
+plotyvar = ["fitness","pathlength","indtypes","develtypes"]
+plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
+
+run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
+run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$plotspdf
+        -dBATCH $plotspdfs`)
 
 nettsvs = map(x->chomp(joinpath(simdir,x)),
               readlines(`ls $simdir` |> `grep nets` |> `grep .tsv`))
 netpdfs = map(x->replace(x,".tsv",".pdf"),nettsvs)
 pmap(clustergram,nettsvs)
-run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$simdir\/nets.pdf
+run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$netspdf
         -dBATCH $netpdfs`)
 
 println("\nSample Final Individuals from Population:")
@@ -95,5 +100,6 @@ println("===========================================\n")
 println(mean(map(x -> length(find(x.network)), pop.individuals)))
 println()
 
-run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
+#run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
+run(`evince $netspdf $plotspdf`)
 run(`libreoffice $simdir\/sim.csv`)
