@@ -262,7 +262,7 @@ function update{T}(mes::Vector{Individual{T}})
         end
     end
 
-    pmap(measure,mes)
+    #pmap(measure,mes)
 
     if SWITCHENV
         map(switchinput,mes)

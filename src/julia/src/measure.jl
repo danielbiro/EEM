@@ -21,6 +21,10 @@ function genmeasure()
 end
 
 function measure(pop::Population, m::Measure, t::Time, n::Int64)
+    # update measurements
+    pmap(measure,pop.individuals)
+
+    # store measurements in Measure
     m.time[n] = t
     m.indtypes[n] = length(unique(map(x->x.network,pop.individuals)))
     m.inittypes[n] = length(unique(map(x->x.initstate,pop.individuals)))
