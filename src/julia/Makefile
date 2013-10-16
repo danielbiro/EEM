@@ -21,7 +21,7 @@ default:
 
 parallel:
 	declare -i PNUM; \
-	export PNUM=`nproc`-0; \
+	export PNUM=`nproc`-2; \
 	cd src; \
 	/usr/bin/time -f "%E real\n%U user\n%S sys\n%K memory (kB)" \
 	julia -p $(PNUM) -L $(PARDEP) $(TOPFILE); \
