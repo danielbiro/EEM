@@ -1,4 +1,4 @@
-function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
+function infomap(wgraph,imruns,npipe="/tmp/juliallp")
     #-----------------------------
     # generate weighted link list
     #-----------------------------
@@ -20,9 +20,14 @@ function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
     # run infomap on linklist
     # via named pipe
     #-----------------------------
-    run(`rm -f $npipe`)
-    run(`mkfifo $npipe`)
-    @spawn run(`echo -e $linklist` |> "$npipe")
+    #run(`rm -f $npipe`)
+    #run(`mkfifo $npipe`)
+    #@spawn run(`echo -e $linklist` |> "$npipe")
+
+    fh = open(npipe,"w")
+    print_unescaped(fh,linklist)
+    close(fh)
+
     #print(readchomp(`cat $npipe`))
     imm=readlines(`../bin/infomap $npipe .
                                     -i link-list
@@ -31,7 +36,7 @@ function infomap(wgraph,imruns,npipe="/tmp/linklistpipe.txt")
                    `grep -Po
                    "((?<=Codelengths for $imruns trials: )\[.*\])|(?<=total:\s{10})\[.*\]"`)
     #println(imm)
-    run(`rm -f $npipe`)
+    #run(`rm -f $npipe`)
 
     dls = vcat(eval(parse(imm[2])),
              min(eval(parse(replace(chomp(imm[1]),", \b\b",""))))

@@ -166,7 +166,7 @@ function modularity(me::Individual)
     weights = zeros(size(me.network))
     indxs = find(!map(x->isapprox(x,0,atol=1e-2),me.network))
     weights[indxs] = 10*sigmoid(me.network[indxs],3)
-    immv = infomap(weights,10,tempname())
+    immv = infomap(weights,10)
     immdl = immv[end]
     imhl = length(immv)
     me.modularity = immdl
