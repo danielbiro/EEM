@@ -2,7 +2,6 @@
 
 ## short
 
-1. Put error bars on output
 1. Use argparse package for scripts that can be called with cl-args
 
 ## hold
@@ -14,6 +13,8 @@
 
 ## completed
 
+1. Add plot target to makefile
+1. Put error bars on output
 1. Experiment with named pipes vs flat files and switch
 to flat files due to increased speed
 1. Fix scaling of weights to work with mod meas

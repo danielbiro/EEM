@@ -24,6 +24,8 @@ function measure(pop::Population, m::Measure, t::Time, n::Int64)
     # update measurements
     pmap(measure,pop.individuals)
 
+    #println("nummeas: $NUMMEAS , time: $t , measurement: $n")
+
     # store measurements in Measure
     m.time[n] = t
     m.indtypes[n] = length(unique(map(x->x.network,pop.individuals)))

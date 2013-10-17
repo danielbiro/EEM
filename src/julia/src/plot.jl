@@ -29,5 +29,5 @@ function plot(simdir)
 
 end
 
-#simdir=joinpath("..","output",ARGS[1])
-#plot(simdir)
+simdir=joinpath("..","output",ARGS[1])
+plot(simdir)
