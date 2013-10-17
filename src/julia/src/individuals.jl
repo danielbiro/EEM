@@ -101,8 +101,15 @@ function genfounder()
     else
         founder = stableind(INP1)
     end
-    founder.fitness = 1
-    founder.optstate = copy(founder.develstate)
+
+    if isempty(OPT1)
+        founder.optstate = copy(founder.develstate)
+        founder.fitness = 1
+    else
+        founder.optstate = OPT1
+        fitnesseval(founder)
+    end
+
 
     return founder
 end
@@ -175,7 +182,14 @@ function modularity(me::Individual)
 end
 
 function switchinput(me::Individual)
-    me.initstate = -1*me.initstate
+    if me.initstate==INP1
+        me.initstate = copy(INP2)
+        me.optstate = copy(OPT2)
+    elseif me.initstate==INP2
+        me.initstate = copy(INP1)
+        me.optstate = copy(OPT1)
+    end
+    #me.initstate = -1*me.initstate
 end
 
 

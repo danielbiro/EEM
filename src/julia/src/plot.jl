@@ -9,7 +9,7 @@ function plot(simdir)
     netspdf = joinpath(simdir,"nets.pdf")
 
     plotxvar = "time"
-    plotyvar = ["pathlength","indtypes","develtypes",
+    plotyvar = ["pathlength","indtypes","develtypes","fitness",
                 "modularity","hierarchy"]
     plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
     run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
@@ -24,8 +24,8 @@ function plot(simdir)
             -dBATCH $netpdfs`)
 
     #run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
-    run(`evince $netspdf $plotspdf`)
-    run(`libreoffice $simdir\/sim.csv`)
+    @spawn run(`evince $netspdf $plotspdf`)
+    @spawn run(`libreoffice $simdir\/sim.csv`)
 
 end
 

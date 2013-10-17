@@ -12,6 +12,11 @@ const P=0.5 # connectivity probability for population structure graph
 const TAU=10 # look-behind depth for convergence testing with sigmoidal function, default 10
 const INP1=vcat(ones(Int64,convert(Int64,G/2)),
                 -1*ones(Int64,convert(Int64,G/2)))
+const OPT1=vcat(ones(Int64,convert(Int64,G/2)),
+                -1*ones(Int64,convert(Int64,G/2)))
+const INP2=ones(Int64,convert(Int64,G))
+const OPT2=ones(Int64,convert(Int64,G))
+const SWITCHSTART=GENS-500 # If less than GENS, start switching between INP1/OPT1 and INP2/OPT2, otherwise remain on INP1/OPT1
 const FRACMEAS = 15/GENS
 const MEASPERIOD = convert(Int64,round(1/FRACMEAS))
 const NUMMEAS = convert(Int64,round(GENS/MEASPERIOD) + 1)
@@ -22,7 +27,7 @@ const NUMCLUST = convert(Int64,round(GENS/CLUSTPERIOD) + 2)
 # flags
 const RANDPOP=true # if true generate initial population with random interactions rather than a homogeneous one
 const SEXUALREPRO=false # if true interleave rows from two individuals each generation
-const MEASUREFIT=false # measure fitness
+const MEASUREFIT=true # measure fitness
 const MEASUREROBUST=false # measure robustness
 const MEASUREMOD=true # measure modularity
 const SWITCHENV=true # switch inputs

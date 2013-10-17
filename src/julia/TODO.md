@@ -13,6 +13,7 @@
 
 ## completed
 
+1. Allow specification of INP1, OPT1, INP2, OPT2
 1. Add plot target to makefile
 1. Put error bars on output
 1. Experiment with named pipes vs flat files and switch

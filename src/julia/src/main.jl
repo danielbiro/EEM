@@ -9,9 +9,9 @@ using DataFrames
 # setup
 #-------------------------
 
-#configfile = "constants.jl"
+configfile = "constants.jl"
 #configfile = "constants_test.jl"
-configfile = "constants_bergsieg2002.jl"
+#configfile = "constants_bergsieg2002.jl"
 indir = joinpath("..","input")
 outdir = joinpath("..","output")
 require(joinpath(indir,configfile))
@@ -48,6 +48,9 @@ else
 end
 
 for t=1:GENS
+    if t>SWITCHSTART
+        const SWITCHENV=true
+    end
     update(pop)
     if (mod(t-1,MEASPERIOD)==0) | (t==GENS)
         measure(pop,meas,t,measnum)
@@ -84,6 +87,9 @@ println(length(find(pop.founder.network)))
 println("\nAverage number of non-zeros in final pop:")
 println("===========================================\n")
 println(mean(map(x -> length(find(x.network)), pop.individuals)))
+println("\nData saved to:")
+println("===========================================\n")
+println(simdir)
 println()
 
 #-------------------------
@@ -100,7 +106,7 @@ if PLOTFLAG
     netspdf = joinpath(simdir,"nets.pdf")
 
     plotxvar = "time"
-    plotyvar = ["pathlength","indtypes","develtypes",
+    plotyvar = ["pathlength","indtypes","develtypes", "fitness",
                 "modularity","hierarchy"]
     plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
     run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
