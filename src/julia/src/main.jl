@@ -47,9 +47,11 @@ else
     println("start loop")
 end
 
+SWITCHENV=false
+
 for t=1:GENS
-    if t>SWITCHSTART
-        const SWITCHENV=true
+    if t==SWITCHSTART
+        SWITCHENV=true
     end
     update(pop)
     if (mod(t-1,MEASPERIOD)==0) | (t==GENS)

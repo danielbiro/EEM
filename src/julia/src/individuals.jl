@@ -67,7 +67,7 @@ function stableind(initstate::Vector{Int64})
 
     randind = Individual()
 
-    while randind.stable!=true
+    while ((randind.stable!=true) | (if isempty(OPT1); false; else; randind.develstate!=OPT1; end))
         randind.network = zeros(Float64,G,G)
         for i=1:G^2
             if rand()<C
@@ -106,7 +106,7 @@ function genfounder()
         founder.optstate = copy(founder.develstate)
         founder.fitness = 1
     else
-        founder.optstate = OPT1
+        founder.optstate = copy(OPT1)
         fitnesseval(founder)
     end
 

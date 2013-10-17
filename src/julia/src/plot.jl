@@ -24,8 +24,8 @@ function plot(simdir)
             -dBATCH $netpdfs`)
 
     #run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
-    @spawn run(`evince $netspdf $plotspdf`)
-    @spawn run(`libreoffice $simdir\/sim.csv`)
+    run(`evince $netspdf $plotspdf`)
+    run(`libreoffice $simdir\/sim.csv`)
 
 end
 
