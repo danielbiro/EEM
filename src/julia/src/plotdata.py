@@ -83,6 +83,11 @@ def main(argv):
                         linestyle='-', linewidth=5, color='k',
                         marker='o',markersize=12,
                         mec='k',mfc='r')
+        if (y_data+"std" in list(df.columns)):
+            plt.errorbar(df[options.x_data],df[y_data],
+                        yerr=df[y_data+"std"],
+                        linestyle="None", marker="None",
+                        color="k")
         output_filename = os.path.join(options.data_directory,y_data+".pdf")
         plt.savefig(output_filename,bbox_inches='tight',
             facecolor=fig1.get_facecolor(), edgecolor='none')

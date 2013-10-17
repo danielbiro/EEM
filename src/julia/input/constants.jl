@@ -27,4 +27,4 @@ const MEASUREROBUST=false # measure robustness
 const MEASUREMOD=true # measure modularity
 const SWITCHENV=true # switch inputs
 const PROGBAR=true # if true show progressbar
-const PLOTFLAG=true # if true, produce and show plots after running simulation
+const PLOTFLAG=false # if true, produce and show plots after running simulation
