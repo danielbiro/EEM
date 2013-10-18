@@ -88,6 +88,8 @@ def main(argv):
                         yerr=df[y_data+"std"],
                         linestyle="None", marker="None",
                         color="k")
+            ax1f1.set_ylim((min(df[y_data])-max(df[y_data+"std"]),
+                            max(df[y_data])+max(df[y_data+"std"])))
         output_filename = os.path.join(options.data_directory,y_data+".pdf")
         plt.savefig(output_filename,bbox_inches='tight',
             facecolor=fig1.get_facecolor(), edgecolor='none')
