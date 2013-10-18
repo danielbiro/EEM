@@ -10,6 +10,10 @@ function genmeasure()
     inittypes = zeros(Int64,NUMMEAS)
     develtypes = zeros(Int64,NUMMEAS)
     opttypes = zeros(Int64,NUMMEAS)
+    mdl1 = zeros(Float64,NUMMEAS)
+    mdl1std = zeros(Float64,NUMMEAS)
+    mdl2 = zeros(Float64,NUMMEAS)
+    mdl2std = zeros(Float64,NUMMEAS)
     mdl = zeros(Float64,NUMMEAS)
     mdlstd = zeros(Float64,NUMMEAS)
     hierarchy = zeros(Float64,NUMMEAS)
@@ -17,14 +21,15 @@ function genmeasure()
 
     Measure(time, fitness,fitnessstd,robustness,robustnessstd,
             pathlength, pathlengthstd, indtypes, inittypes,
-            develtypes, opttypes, mdl, mdlstd, hierarchy, hierarchystd)
+            develtypes, opttypes, mdl1, mdl1std, mdl2, mdl2std,
+            mdl, mdlstd, hierarchy, hierarchystd)
 end
 
 function measure(pop::Population, m::Measure, t::Time, n::Int64)
     # update measurements
     pmap(measure,pop.individuals)
 
-    #println("nummeas: $NUMMEAS , time: $t , measurement: $n")
+    println("nummeas: $NUMMEAS , time: $t , measurement: $n")
 
     # store measurements in Measure
     m.time[n] = t
@@ -35,6 +40,8 @@ function measure(pop::Population, m::Measure, t::Time, n::Int64)
     fitvect = map(x->x.fitness, pop.individuals)
     robustvect = map(x->x.robustness, pop.individuals)
     pathvect = map(x->x.pathlength, pop.individuals)
+    level1vect = map(x->x.level1, pop.individuals)
+    level2vect = map(x->x.level2, pop.individuals)
     modvect = map(x->x.modularity, pop.individuals)
     hiervect = map(x->x.hierarchy, pop.individuals)
     m.fitness[n] = mean(fitvect)
@@ -43,6 +50,10 @@ function measure(pop::Population, m::Measure, t::Time, n::Int64)
     m.robustnessstd[n] = std(robustvect)
     m.pathlength[n] = mean(pathvect)
     m.pathlengthstd[n] = std(pathvect)
+    m.level1[n] = mean(level1vect)
+    m.level1std[n] = std(level1vect)
+    m.level2[n] = mean(level2vect)
+    m.level2std[n] = std(level2vect)
     m.minimumdescriptionlength[n] = mean(modvect)
     m.minimumdescriptionlengthstd[n] = std(modvect)
     m.hierarchy[n] = mean(hiervect)
@@ -61,6 +72,10 @@ function save(m::Measure, fname::String)
                    robustnessstd=m.robustnessstd,
                    pathlength=m.pathlength,
                    pathlengthstd=m.pathlengthstd,
+                   level1=m.level1,
+                   level1std=m.level1std,
+                   level2=m.level2,
+                   level2std=m.level2std,
                    modularity=m.minimumdescriptionlength,
                    modularitystd=m.minimumdescriptionlengthstd,
                    hierarchy=m.hierarchy,

@@ -3,7 +3,7 @@
 # ---------------------------
 function Individual(network::Matrix{Float64},initstate::Vector{Int64})
     Individual(copy(network), copy(initstate), zeros(Int64,G),
-                             zeros(Int64,G), false, 0., 0., 0, 0., 0)
+                             zeros(Int64,G), false, 0., 0., 0, 0., 0., 0., 0)
 end
 
 function Individual(network::Matrix{Float64})
@@ -174,10 +174,10 @@ function modularity(me::Individual)
     indxs = find(!map(x->isapprox(x,0,atol=1e-2),me.network))
     weights[indxs] = 10*sigmoid(me.network[indxs],3)
     immv = infomap(weights,10)
-    immdl = immv[end]
-    imhl = length(immv)
-    me.modularity = immdl
-    me.hierarchy = imhl
+    me.level1 = immv[1]
+    me.level2 = immv[2]
+    me.modularity = immv[end]
+    me.hierarchy = length(immv)
 
 end
 
