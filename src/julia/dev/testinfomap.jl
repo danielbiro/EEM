@@ -43,6 +43,7 @@ function gengraph(graphtype="random",N=10,P=1,K=3,Beta=0.1)
     weights = randn(agraph.nedges)
     #weights = ones(agraph.nedges)
     #weights = rand(agraph.nedges)
+    #weights = rand(-1:1,agraph.nedges)
 
     weight_matrix(agraph,weights)
 end
