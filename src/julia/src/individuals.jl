@@ -61,17 +61,25 @@ function fitnesseval(me::Individual)
     end
 end
 
-function stableind(initstate::Vector{Int64})
+function stableind(initstate::Vector{Int64},optstate::Vector{Int64})
 # generate a random Individual that is
 # developmentally stable
 
     randind = Individual()
 
-    while ((randind.stable!=true) | (if isempty(OPT1); false; else; randind.develstate!=OPT1; end))
+    while ((randind.stable!=true) | (if isempty(optstate); false; else; randind.develstate!=optstate; end))
         randind.network = zeros(Float64,G,G)
         for i=1:G^2
             if rand()<C
-                randind.network[i] = randn()
+                if INDWEIGHTS=="discrete"
+                    #randind.network[i] = [-1,1][rand(1:2)]
+                    randind.network[i] = rand(-1:1)
+                elseif INDWEIGHTS=="guassian"
+                    randind.network[i] = randn()
+                else
+                    error(string("wrong specification of individual weights:",
+                           " use discrete or gaussian"))
+                end
             end
         end
         randind.initstate = copy(initstate)
@@ -81,6 +89,10 @@ function stableind(initstate::Vector{Int64})
     randind.fitness=1
 
     return randind
+end
+
+function stableind(initstate::Vector{Int64})
+    stableind(initstate,(Int64)[])
 end
 
 function randstableind()
@@ -96,20 +108,17 @@ function genfounder()
 # developmental state is equivalent to
 # its optimal state and thereby determines
 # the optimal state for the population
-    if isempty(INP1)
+    if isempty(INP1) & isempty(OPT1)
         founder = randstableind()
-    else
+    elseif isempty(OPT1)
         founder = stableind(INP1)
-    end
-
-    if isempty(OPT1)
         founder.optstate = copy(founder.develstate)
         founder.fitness = 1
     else
+        founder = stableind(INP1,OPT1)
         founder.optstate = copy(OPT1)
         fitnesseval(founder)
     end
-
 
     return founder
 end
@@ -172,7 +181,8 @@ function modularity(me::Individual)
 
     weights = zeros(size(me.network))
     indxs = find(!map(x->isapprox(x,0,atol=1e-2),me.network))
-    weights[indxs] = 10*sigmoid(me.network[indxs],3)
+    #weights[indxs] = 10*sigmoid(me.network[indxs],3)
+    weights[indxs] = 10*sigmoid(me.network[indxs],1)
     immv = infomap(weights,10)
     me.level1 = immv[1]
     me.level2 = immv[2]

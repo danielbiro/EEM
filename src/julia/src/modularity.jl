@@ -39,7 +39,7 @@ function infomap(wgraph,imruns,npipe="/tmp/juliallp")
     #run(`rm -f $npipe`)
 
     dls = vcat(eval(parse(imm[2])),
-             min(eval(parse(replace(chomp(imm[1]),", \b\b",""))))
+             minimum(eval(parse(replace(chomp(imm[1]),", \b\b",""))))
             )
     #println(dls)
 

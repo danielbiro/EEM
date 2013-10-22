@@ -1,4 +1,4 @@
-.PHONY: default parallel plot clean test
+.PHONY: default mc parallel plot plotmc clean test
 
 #---------------------------------------------
 # Define variables
@@ -7,7 +7,9 @@
 # http://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html#Automatic-Variables
 SHELL=/bin/bash
 TOPFILE=main.jl
+MCFILE=montecarlo.jl
 PLOTFILE=plot.jl
+PLOTMCFILE=plotmc.jl
 TESTFILE=run_tests.jl
 PARDEP=parload.jl
 
@@ -19,6 +21,9 @@ PARDEP=parload.jl
 
 default:
 	cd src; julia $(TOPFILE); cd ..
+
+mc:
+	cd src; julia $(MCFILE); cd ..
 
 parallel:
 	declare -i PNUM; \
@@ -33,6 +38,12 @@ plot:
 	# of a directory in output folder containing results
 	# from a previous simulation
 	cd src; julia $(PLOTFILE) $(simdir); cd ..
+
+plotmc:
+	# run as: make plotmc simdir=SIMDIR where SIMDIR is the name
+	# of a directory in output folder containing results
+	# from a previous simulation
+	cd src; julia $(PLOTMCFILE) $(simdir); cd ..
 #----------------------------------------------
 # Additional targets
 

@@ -123,7 +123,7 @@ if PLOTFLAG
             -dBATCH $netpdfs`)
 
     #run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
-    run(`evince $netspdf $plotspdf`)
-    run(`libreoffice $simdir\/sim.csv`)
+    spawn(`evince $netspdf $plotspdf`)
+    spawn(`libreoffice $simdir\/sim.csv`)
 
 end

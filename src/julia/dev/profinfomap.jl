@@ -29,13 +29,14 @@ function infomap(linklist,imruns,npipe)
     #println("here1")
 
     #@spawn run(`echo -e $linklist` |> "$npipe")
+    spawn(`echo -e $linklist` |> "$npipe")
 
     #run(`./tonamedpipe.sh $linklist $npipe`)
     #println("here2")
 
-    fh = open(npipe,"w")
-    print_unescaped(fh,linklist)
-    close(fh)
+    #fh = open(npipe,"w")
+    #print_unescaped(fh,linklist)
+    #close(fh)
 
 
     #println(readlines(`cat $npipe`))
@@ -66,8 +67,8 @@ function profinfomap()
     np = tempname()
     #np = joinpath("/media","ramdisk","tmp","tempfile")
     println(np)
-    #run(`rm -f $np`)
-    #run(`mkfifo $np`)
+    run(`rm -f $np`)
+    run(`mkfifo $np`)
     #fh = open(np,"w")
     #println("here")
     linklist = genlinklist(wgraph)
@@ -75,7 +76,7 @@ function profinfomap()
     for i=1:500
         #infomap(linklist,10,tempname())
         #infomap(linklist,10,"modgraph.txt")
-        infomap(linklist,10,np,fh)
+        infomap(linklist,10,np)
     end
     #close(fh)
     #run(`rm -f $np`)

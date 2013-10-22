@@ -10,12 +10,12 @@ const SELSTR=1 # selection strength aka \sigma, highest selection when close to 
 const ROBIT=10 # number of iterations to run in robustness testing
 const P=0.5 # connectivity probability for population structure graph
 const TAU=10 # look-behind depth for convergence testing with sigmoidal function, default 10
-const INP1=vcat(ones(Int64,convert(Int64,G/2)),
+const INP1=ones(Int64,convert(Int64,G))
+const OPT1=ones(Int64,convert(Int64,G))
+const INP2=vcat(ones(Int64,convert(Int64,G/2)),
                 -1*ones(Int64,convert(Int64,G/2)))
-const OPT1=vcat(ones(Int64,convert(Int64,G/2)),
+const OPT2=vcat(ones(Int64,convert(Int64,G/2)),
                 -1*ones(Int64,convert(Int64,G/2)))
-const INP2=ones(Int64,convert(Int64,G))
-const OPT2=ones(Int64,convert(Int64,G))
 const SWITCHSTART=GENS-35000 # If less than GENS, start switching between INP1/OPT1 and INP2/OPT2, otherwise remain on INP1/OPT1
 const FRACMEAS = 15/GENS
 const MEASPERIOD = convert(Int64,round(1/FRACMEAS))
@@ -32,3 +32,4 @@ const MEASUREROBUST=false # measure robustness
 const MEASUREMOD=true # measure modularity
 const PROGBAR=true # if true show progressbar
 const PLOTFLAG=false # if true, produce and show plots after running simulation
+const INDWEIGHTS="gaussian" # if "discrete" then sample {1,-1,0} via rand(-1:1) if "gaussian" use randn()

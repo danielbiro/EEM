@@ -11,7 +11,7 @@
     * see [conjugacy class size for symmetric group](http://groupprops.subwiki.org/wiki/Conjugacy_class_size_formula_in_symmetric_group)
 1. Implement more effective stability detection that includes cycles (see [here](http://dx.plos.org/10.1371/journal.pone.0034285))
 1. Consider using stochastic or transition rate matrices for individuals
-    - function to compute perron vector:
+    * function to compute perron vector:
 
         ```
         perron(B)=rref(vcat(hcat(B-eye(size(B,2)),
@@ -59,5 +59,5 @@ to flat files due to increased speed
 1. Translate python version to julia
 1. Give each individual an initial state and initialize it to that of founder
 
-## test
-![Pathlength vs generation](output/20131016_13448/pathlength.png "Figure Nber: Title")
+<!-- ## test
+![Pathlength vs generation](output/20131016_13448/pathlength.png "Figure Nber: Title") -->

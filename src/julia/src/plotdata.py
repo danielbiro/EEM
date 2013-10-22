@@ -5,7 +5,7 @@ plotdata.py
 
 Read data from csv file
 into pandas dataframe, filter, and
-export reformatted data
+plot data
 
 input: DATA-FILENAME.csv
 output: OUTPUT-FILENAME.pdf
