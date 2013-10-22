@@ -40,8 +40,17 @@ function save(pop::Population, fname::String)
     # for i = 1:N
     #     networks[:,i] = pop.individuals[i].network
     # end
-    networks = flatten([pop.individuals[i].network for i=1:N])
-    networks = reshape(networks,G^2,N)
-    df = DataFrame(networks)
-    writetable(fname, df, quotemark = ' ')
+    networks = [pop.individuals[i].network for i=1:N]
+    allnetworks = reshape(flatten(networks),G^2,N)
+    df = DataFrame(allnetworks)
+    writetable(string(fname,".tsv"), df, quotemark = ' ')
+
+    meanpop = mean(networks)
+    df2 = DataFrame(meanpop)
+    writetable(string(fname,"mean.tsv"), df2, quotemark = ' ')
+
+    stdpop = reshape(std(allnetworks,2),G,G)
+    df3 = DataFrame(stdpop)
+    writetable(string(fname,"std.tsv"), df3, quotemark = ' ')
+
 end

@@ -1,4 +1,2 @@
-EEM
+eem
 ===
-
-Experimental Evolution Model

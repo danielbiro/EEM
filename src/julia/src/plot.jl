@@ -1,22 +1,33 @@
-using Gadfly
-using DataFrames
-
-function makedataframe(m::Measure)
-    df = DataFrame(fitness=m.fitness,
-                   robustness=m.robustness,
-                   pathlength=m.pathlength)
+function clustergram(fname)
+    run(`python clustergram.py --i $fname`)
 end
 
-function writesimdata(m::Measure, fname::String)
-    df = makedataframe(m)
-    writetable(fname,df)
+function plot(simdir)
+
+    # Python script substitutes for Gadfly to plot basic data
+    plotspdf = joinpath(simdir,"plots.pdf")
+    netspdf = joinpath(simdir,"nets.pdf")
+
+    plotxvar = "time"
+    plotyvar = ["pathlength","indtypes","develtypes","fitness",
+                "modularity","hierarchy"]
+    plotspdfs = map(x->joinpath(simdir,string(x,".pdf")),plotyvar)
+    run(`python plotdata.py -d $simdir -x $plotxvar -y $plotyvar`)
+    run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$plotspdf
+            -dBATCH $plotspdfs`)
+
+    nettsvs = map(x->chomp(joinpath(simdir,x)),
+                  readlines(`ls $simdir` |> `grep nets` |> `grep .tsv`))
+    netpdfs = map(x->replace(x,".tsv",".pdf"),nettsvs)
+    pmap(clustergram,nettsvs)
+    run(`gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=$netspdf
+            -dBATCH $netpdfs`)
+
+    #run(`evince $simdir\/nets.pdf $simdir\/$plotyvar\.pdf`)
+    spawn(`evince $netspdf $plotspdf`)
+    spawn(`libreoffice $simdir\/sim.csv`)
+
 end
 
-function readsimdata(fname::String)
-    df = readtable(fname)
-end
-
-function plotmeas(m::Measure)
-    df = makedataframe(m)
-
-end
+simdir=joinpath("..","output",ARGS[1])
+plot(simdir)

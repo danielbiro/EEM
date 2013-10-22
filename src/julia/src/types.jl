@@ -9,6 +9,8 @@ type Individual{T} <: Individuals
     fitness::Float64
     robustness::Float64
     pathlength::Int64
+    level1::Float64
+    level2::Float64
     modularity::Float64
     hierarchy::Int64
 end
@@ -20,6 +22,7 @@ type Population{I <: Individuals}
 end
 
 type Measure
+    time::Vector{Int64}
     fitness::Vector{Float64}
     fitnessstd::Vector{Float64}
     robustness::Vector{Float64}
@@ -30,6 +33,10 @@ type Measure
     inittypes::Vector{Int64}
     develtypes::Vector{Int64}
     opttypes::Vector{Int64}
+    level1::Vector{Float64}
+    level1std::Vector{Float64}
+    level2::Vector{Float64}
+    level2std::Vector{Float64}
     minimumdescriptionlength::Vector{Float64}
     minimumdescriptionlengthstd::Vector{Float64}
     hierarchy::Vector{Float64}
