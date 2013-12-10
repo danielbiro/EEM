@@ -9,7 +9,7 @@ using DataFrames
 # setup
 #-------------------------
 
-configfile = "constants_mc.jl"
+configfile = "constants.jl"
 indir = joinpath("..","input")
 outdir = joinpath("..","output")
 require(joinpath(indir,configfile))

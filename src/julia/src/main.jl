@@ -9,8 +9,8 @@ using DataFrames
 # setup
 #-------------------------
 
-#configfile = "constants.jl"
-configfile = "constants_test.jl"
+configfile = "constants.jl"
+#configfile = "constants_test.jl"
 #configfile = "constants_bergsieg2002.jl"
 indir = joinpath("..","input")
 outdir = joinpath("..","output")

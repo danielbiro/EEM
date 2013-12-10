@@ -74,8 +74,8 @@ function stableind(initstate::Vector{Int64},optstate::Vector{Int64})
                 if INDWEIGHTS=="discrete"
                     #randind.network[i] = [-1,1][rand(1:2)]
                     randind.network[i] = rand(-1:1)
-                elseif INDWEIGHTS=="guassian"
-                    randind.network[i] = randn()
+                elseif INDWEIGHTS=="gaussian"
+                    randind.network[i] = MUTMAG*randn()
                 else
                     error(string("wrong specification of individual weights:",
                            " use discrete or gaussian"))
@@ -121,6 +121,55 @@ function genfounder()
     end
 
     return founder
+end
+
+function connectmutate(me::Individual)
+# mutate nonzero elements of an individuals network
+# to zero elements and vice versa 
+# according to MacCarthy and Bergman
+
+    # Find the non-zero entries as potential mutation sites
+    nzindx = find(me.network)
+    # Find the zero entries
+    zindx = find(me.network.==0)
+    # Determine the connectivity of the matrix
+    # by counting the number of non-zeros
+    cnum = length(nzindx)
+    zernum = length(zindx)
+    conn = cnum/G^2
+    
+
+    conmutflagz=false
+    conmutflagnz=false
+
+    if MAINTAINFLAG
+        b = 1 - 2*C
+    else
+        b = CONMUTPARAM
+    end
+
+    k = conn*(1 + b) + (1 - conn)*(1 - b)
+
+    for i=1:cnum
+        # For each non-zero entry:
+        # with appropriate probability
+        if  rand() < CONMUTRATE*(1+b)/k
+            # Mutate a non-zero entry to a zero
+            me.network[nzindx[i]] =  0
+            conmutflagz=true
+        end
+    end
+
+    for i=1:zernum
+        # For each zero entry:
+        # With appropriate probability
+        if  rand() < CONMUTRATE*(1-b)/k
+            # Mutate a zero entry to a number chosen from a gaussian
+            me.network[zindx[i]] =  MUTMAG*randn()
+            conmutflagnz=true
+        end
+    end
+    return conmutflagz
 end
 
 function mutate(me::Individual)
@@ -264,6 +313,11 @@ function update{T}(mes::Vector{Individual{T}})
         end
 
         mutate(tempind)
+
+        if CONMUTFLAG
+            connectmutate(tempind)
+        end
+
 
         tempind.initstate = copy(oldinds[z].initstate)
         tempind.optstate = copy(oldinds[z].optstate)
